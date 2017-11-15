@@ -29,8 +29,7 @@ const users = (users) => (
         <thead>
         <tr>
             <th>
-                <div id="clock">0</div>
-                <div id="tick"></div>
+
             </th>
             <th>Name</th>
             <th>Active Pomodoro</th>
@@ -60,7 +59,8 @@ class Pomodoros extends Component {
     constructor(props) {
         super(props);
         this.state = {
-            time: 0,
+            timer: null,
+            counter: 0,
             users: [
                 {
                     id: 0,
@@ -91,27 +91,32 @@ class Pomodoros extends Component {
                 }
             ]
         }
+        this.tick_clock = this.tick_clock.bind(this);
+    }
+
+    tick_clock(){
+        const incr_time = this.state.counter + 1;
+        console.log(incr_time);
+        this.setState({ counter: incr_time })
     }
 
     componentDidMount() {
         start(this.state.users, this);
-        let clock = setInterval(()=>{
-            let t = (this.state.timer + 1);
-            this.setState({timer: t});
-            document.getElementById('clock').innerHTML = t;
+        let timer = setInterval(this.tick_clock, 1000);
+        this.setState({timer});
+        /*let delta_t = setInterval(tick(this.state.users), 10);
+        let clock = setInterval(() => {
+            console.log(timer);
 
-        }, 1000);
-        let delta_t = setInterval(tick(this.state.users), 10);
-        this.setState(delta_t);
-        tick(this.state.users);
+            document.getElementById('timer').innerHTML = timer;
+        }, 1000);*/
 
-        this.setState({clock})
     }
 
     render() {
         return (
             <div>
-                <div id="timer"/>
+                {this.state.counter}
                 {users(this.state.users)}
             </div>
         )
@@ -170,13 +175,14 @@ const checkState = (props) => {
     const break_over = rel_time > user.pomodoro_start + POMODORO_TIME + BREAK_TIME;
     const set_state_work = on_break && break_over;
 
-
+    /*
     console.log('working: ' + user.pomodoro_state + ' === ' + PomodoroState.POMODORO + " = " + working);
     console.log('rel_time_gt: ' + rel_time + ' > ' + user.pomodoro_start + POMODORO_TIME + ' = ' + rel_time_gt);
     console.log('set break = ' + set_state_break);
     console.log('on_break = ' + on_break);
     console.log('break over = ' + break_over);
     console.log('set work = ' + set_state_work);
+    */
 
     if (set_state_break) {
         console.log("Set state to BREAK");
