@@ -51,11 +51,8 @@
 		var user_id = {{ user_id }};
 		var num_users = {{ num_users }};
 		var users = new Array(num_users); // this will be a dictionary soon with key user_id
-		//var pomodoro_state = PomodoroState.STOPPED;
 		var pomodoro_time = 10; // in seconds
 		var break_time = 4; // in seconds
-		//var pomodoro_start; // start in seconds of current pomodoro
-		//var pomodoros = {{ pomodoros }}; // [start, end, start, end, ...]
 		//var debug_start = {{ debug_start }};
 		
 		// Initialize friends to default values.
@@ -67,6 +64,7 @@
 		}
 		users[user_id].pomodoro_state = PomodoroState.STOPPED;
 		var got_first_update = false;
+		var real_pomodoro_start;
 		
 		//console.log(pomodoros);
 		
@@ -191,7 +189,7 @@
 						}
 					} else if (users[i].pomodoro_state == PomodoroState.BREAK && get_rel_time() > users[i].pomodoro_start + pomodoro_time + break_time) {
 						users[i].pomodoro_state = PomodoroState.POMODORO;
-						users[i].pomodoro_start = users[i].pomodoro_start + pomodoro_time + break_time;
+						real_pomodoro_start = users[i].pomodoro_start = users[i].pomodoro_start + pomodoro_time + break_time;
 					}
 				}
 			}
@@ -211,7 +209,7 @@
 		}
 
 		function add_pomodoro() {
-			users[user_id].pomodoros.push(users[user_id].pomodoro_start);
+			users[user_id].pomodoros.push(real_pomodoro_start);
 			users[user_id].pomodoros.push(get_rel_time());
 			console.log(users);
 		}
@@ -225,7 +223,7 @@
 			$("#control").click(function() {
 				if (users[user_id].pomodoro_state == PomodoroState.STOPPED) {
 					users[user_id].pomodoro_state = PomodoroState.POMODORO;
-					users[user_id].pomodoro_start = get_rel_time();
+					real_pomodoro_start = users[user_id].pomodoro_start = get_rel_time();
 					tick(); 
 				} else /* if (pomodoro_state == PomodoroState.POMODORO || pomodoro_state == PomodoroState.BREAK) */ {
 					users[user_id].pomodoro_state = PomodoroState.STOPPED;
@@ -237,7 +235,15 @@
 			
 			$(".sync_button").click(function() {
 				partner_id = $(this).attr("data-user-id");
-				console.log(partner_id);
+				
+				// If we are right now in a pomodoro, save it as a seperate unit.
+				if (users[user_id].pomodoro_state == PomodoroState.POMODORO) {
+					add_pomodoro();
+				}
+				
+				// Here is why we introduced real_pomodoro_start, because in this
+				// scenario pomodoro_start and real_pomodoro_start diverge.
+				real_pomodoro_start = get_rel_time();
 				users[user_id].pomodoro_start = users[partner_id].pomodoro_start;
 				users[user_id].pomodoro_state = users[partner_id].pomodoro_state;
 			});
