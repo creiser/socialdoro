@@ -12,6 +12,9 @@ const PomodoroState = {
 };
 
 
+const DELTA_T = 1000;
+
+
 let pomodoro_state = PomodoroState.STOPPED;
 const POMODORO_TIME = 10; // 8 seconds
 const BREAK_TIME = 4; // 2 seconds
@@ -39,7 +42,10 @@ const users = (users) => (
         <tbody>
         {users.map((user) =>
             <tr>
-                <td ><Glyphicon id="control" glyph="play-circle" onClick={() => checkState({user:user})}/>
+                <td ><Glyphicon id="control" glyph="play-circle" onClick={() => {
+                        console.log(user);
+                        toggle_pomodoro_state(user);
+                }}/>
                     <Glyphicon glyph="user"/></td>
                 <td className={`pomodoro_${user.pomodoro_state}`}>{user.name}</td>
                 <td>
@@ -91,7 +97,7 @@ class Pomodoros extends Component {
                     pomodoros: []
                 }
             ]
-        }
+        },
         this.tick_clock = this.tick_clock.bind(this);
     }
 
@@ -106,15 +112,9 @@ class Pomodoros extends Component {
 
     componentDidMount() {
         start(this.state.users, this);
-        let timer = setInterval(this.tick_clock, 1000);
+        // set app tick rate to DELTA_T
+        let timer = setInterval(this.tick_clock, DELTA_T);
         this.setState({timer});
-        /*let delta_t = setInterval(tick(this.state.users), 10);
-        let clock = setInterval(() => {
-            console.log(timer);
-
-            document.getElementById('timer').innerHTML = timer;
-        }, 1000);*/
-
     }
 
     render() {
@@ -136,36 +136,53 @@ function add_pomodoro_to_user(user) {
     console.log(user.pomodoros);
 }
 
+const progress_bar_block = (props) => {
+    return '<div style="width: ' + props.width + '%; height: 21px; background-color:' + props.bgcolor + '; float: left;"></div>';
+};
+
 const progressBar = (props) => {
     /*
     return: div element with progress_bar
      */
-    let progress_html = "";
+    let progress_html = document.createElement('div');
     for (let i = 0; i < props.pomodoros.length; i += 2) {
         let width = props.pomodoros[i + 1] - props.pomodoros[i]; // 1% = 1 second
-        progress_html += '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
+        progress_html += progress_bar_block({width:width, bgcolor:"green"});
         if (i + 2 < props.pomodoros.length) {
             width = props.pomodoros[i + 2] - props.pomodoros[i + 1];
-            progress_html += '<div style="width: ' + width + '%; height: 21px; float: left;"></div>';
+            progress_html += progress_bar_block({width:width, bgcolor:"red"});
         }
     }
 
     // current active pomodoro will be updated continously
     if (props.pomodoro_state === PomodoroState.POMODORO) {
+        console.log("active update?");
         if (props.pomodoros.length) {
             let width = props.pomodoro_start - props.pomodoros[props.pomodoros.length - 1];
-            progress_html += '<div style="width: ' + width + '%; height: 21px; float: left;"></div>';
+            progress_html += progress_bar_block({width:width, bgcolor:"red"});
         }
 
         let width = props.rel_time - props.pomodoro_start;
-        progress_html += '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
+        progress_html += progress_bar_block({width:width, bgcolor:"green"});
     }
     return progress_html;
 };
 
+const toggle_pomodoro_state = (user) => {
+    if (user.pomodoro_state === PomodoroState.POMODORO){
+        user.pomodoro_state = PomodoroState.STOPPED;
+    } else {
+        user.pomodoro_state = PomodoroState.POMODORO;
+    }
+
+};
+
+const set_pomodoro_start_time = (user) => {
+    user.pomodoro_start = user.pomodoro_start + POMODORO_TIME + BREAK_TIME;
+};
+
 const checkState = (props) => {
-    console.log("checkState("+props.user.name+")");
-    console.log(props.user);
+
     const user = props.user;
     const rel_time = get_rel_time();
 
@@ -179,23 +196,12 @@ const checkState = (props) => {
     const break_over = rel_time > user.pomodoro_start + POMODORO_TIME + BREAK_TIME;
     const set_state_work = on_break && break_over;
 
-    /*
-    console.log('working: ' + user.pomodoro_state + ' === ' + PomodoroState.POMODORO + " = " + working);
-    console.log('rel_time_gt: ' + rel_time + ' > ' + user.pomodoro_start + POMODORO_TIME + ' = ' + rel_time_gt);
-    console.log('set break = ' + set_state_break);
-    console.log('on_break = ' + on_break);
-    console.log('break over = ' + break_over);
-    console.log('set work = ' + set_state_work);
-    */
-
     if (set_state_break) {
-        console.log("Set state to BREAK");
-        user.pomodoro_state = PomodoroState.BREAK;
+        toggle_pomodoro_state(user);
         add_pomodoro_to_user(user);
     } else if (set_state_work) {
-        console.log("Set state to POMODORO");
-        user.pomodoro_state = PomodoroState.POMODORO;
-        user.pomodoro_start = user.pomodoro_start + POMODORO_TIME + BREAK_TIME;
+        toggle_pomodoro_state(user);
+        set_pomodoro_start_time(user);
     }
 };
 
@@ -213,8 +219,7 @@ const tick = (props) => {
 
             // generate the progress bar from users pomodore states
             const pbar_id = "progress_" + user.id;
-            document.getElementById(pbar_id)
-                .innerHTML = progressBar({
+            document.getElementById(pbar_id).innerHTML = progressBar({
                 rel_time: rel_time,
                 pomodoros: user.pomodoros,
                 pomodoro_state: user.pomodoro_state
@@ -236,13 +241,14 @@ const start = (users) => {
 
         if (start_pomodoro) {
             console.log('start');
-            user.pomodoro_state = PomodoroState.POMODORO;
+            toggle_pomodoro_state(user);
+
             console.log("user: " + user.name + ", pomodoro: " + user.pomodoro_state);
             user.pomodoro_start = get_rel_time();
 
         } else {
             console.log('stop');
-            user.pomodoro_state = PomodoroState.STOPPED;
+            toggle_pomodoro_state(user);
             user.pomodoros.push(user.pomodoro_start);
             user.pomodoros.push(get_rel_time());
 
