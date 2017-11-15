@@ -1,0 +1,16 @@
+
+.status-bar {
+    visibility: hidden;
+    border: 2px solid #969696;
+    border-radius: 5px;
+    padding: 2px 2px 2px 2px;
+    background-color: rgba(100,20,20,0.04);
+}
+
+.green {
+    background-color: green;
+}
+
+.red {
+    background-color: red;
+}

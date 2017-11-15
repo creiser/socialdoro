@@ -61,3 +61,7 @@ def index():
                            debug_start=debug_start,
                            #pomodoros=pomodoros
                            )
+
+
+if __name__ == '__main__':
+    app.run()
