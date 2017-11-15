@@ -71,10 +71,13 @@
 		function render_progress() {
 			if (users[user_id].pomodoro_state == PomodoroState.POMODORO) {
 				$("#info").text("Work! Next break in " + Math.round(users[user_id].pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.");
+				$("#control").text("Stop");
 			} else if (users[user_id].pomodoro_state == PomodoroState.BREAK) {
 				$("#info").text("Take a break! Next pomodoro in " + Math.round(users[user_id].pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.");
+				$("#control").text("Stop");
 			} else {
 				$("#info").text("Press start to start pomodoro");
+				$("#control").text("Start");
 			}
 		
 			for (i = 0; i < num_users; i++) {
@@ -225,11 +228,9 @@
 				if (users[user_id].pomodoro_state == PomodoroState.STOPPED) {
 					users[user_id].pomodoro_state = PomodoroState.POMODORO;
 					users[user_id].pomodoro_start = get_rel_time();
-					$("#control").text("Stop");
 					tick(); 
 				} else /* if (pomodoro_state == PomodoroState.POMODORO || pomodoro_state == PomodoroState.BREAK) */ {
 					users[user_id].pomodoro_state = PomodoroState.STOPPED;
-					$("#control").text("Start");
 					add_pomodoro();
 				}
 				//$("#info").text(pomodoro_state)
