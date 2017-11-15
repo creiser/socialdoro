@@ -12,13 +12,22 @@ debug_start = time.time() # seconds since 1970
 num_users = 4
 users = [{'pomodoro_state' : POMODOROSTATE_OFFLINE,
           'pomodoro_start' : None,
+          'last_update' : 0,
           'pomodoros' : []} for _ in range(num_users)]
+
+def check_for_timeouts():
+    # TODO: in case of timeout we could nevertheless add pomodoro
+    for i in range(num_users):
+        if time.time() - users[i]['last_update'] > 2:
+            users[i]['pomodoro_state'] = POMODOROSTATE_OFFLINE
 
 @app.route('/_user_status')
 def user_status():
     user_id = request.args.get('user_id', type=int)
     users[user_id]['pomodoro_state'] = request.args.get('pomodoro_state', 0, type=int)
     users[user_id]['pomodoro_start'] = request.args.get('pomodoro_start', 0, type=float)
+    users[user_id]['last_update'] = time.time()
+    check_for_timeouts()
     return jsonify(users=users)
 
 @app.route('/_add_pomodoro')

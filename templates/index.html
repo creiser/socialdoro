@@ -27,6 +27,26 @@
 		  POMODORO: 2,
 		  BREAK: 3,
 		};
+		
+		function pomodoro_state_to_string(pomodoro_state) {
+			var string;
+			switch (users[i].pomodoro_state)
+			{
+				case PomodoroState.OFFLINE:
+					string = "offline";
+					break;
+				case PomodoroState.STOPPED:
+					string = "stopped";
+					break;
+				case PomodoroState.POMODORO:
+					string = "pomodoro";
+					break;
+				case PomodoroState.BREAK:
+					string = "break";
+					break;
+			}
+			return string;
+		}
 
 		var user_id = {{ user_id }};
 		var num_users = {{ num_users }};
@@ -49,30 +69,30 @@
 		//console.log(pomodoros);
 		
 		function render_progress() {
-			if (users.length) {
-				if (users[user_id].pomodoro_state == PomodoroState.POMODORO) {
-					$("#info").text("Work! Next break in " + Math.round(users[user_id].pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.");
-				} else if (users[user_id].pomodoro_state == PomodoroState.BREAK) {
-					$("#info").text("Take a break! Next pomodoro in " + Math.round(users[user_id].pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.");
-				} else {
-					$("#info").text("Press start to start pomodoro");
-				}
-			
-			
-				for (i = 0; i < num_users; i++) {
-					var width;
-					var progress_html = "";
-					if (users[i].pomodoro_state == PomodoroState.POMODORO || users[i].pomodoro_state == PomodoroState.BREAK) {
-							if (users[i].pomodoro_state == PomodoroState.POMODORO) {
-								width = (get_rel_time() - users[i].pomodoro_start) * 100 / pomodoro_time;
-							} else {
-								width = (get_rel_time() - (users[i].pomodoro_start + pomodoro_time)) * 100 / break_time;
-							}
-							progress_html = '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
-					}
-					$("#progress_" + i).html(progress_html);
-				}
+			if (users[user_id].pomodoro_state == PomodoroState.POMODORO) {
+				$("#info").text("Work! Next break in " + Math.round(users[user_id].pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.");
+			} else if (users[user_id].pomodoro_state == PomodoroState.BREAK) {
+				$("#info").text("Take a break! Next pomodoro in " + Math.round(users[user_id].pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.");
+			} else {
+				$("#info").text("Press start to start pomodoro");
 			}
+		
+			for (i = 0; i < num_users; i++) {
+				var width;
+				var progress_html = "";
+				if (users[i].pomodoro_state == PomodoroState.POMODORO || users[i].pomodoro_state == PomodoroState.BREAK) {
+						if (users[i].pomodoro_state == PomodoroState.POMODORO) {
+							width = (get_rel_time() - users[i].pomodoro_start) * 100 / pomodoro_time;
+						} else {
+							width = (get_rel_time() - (users[i].pomodoro_start + pomodoro_time)) * 100 / break_time;
+						}
+						progress_html = '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
+				}
+				$("#progress_" + i).html(progress_html);
+				$("#user_info_" + i).text(pomodoro_state_to_string(users[i].pomodoro_state));
+			}
+			
+
 			
 			/*for (i = 0; i < num_users; i++) { 
 				var progress_html = "";
@@ -211,8 +231,11 @@
 	Current user: {{ user_id }}<br>
 	
 	{% for item in range(num_users) %}
-		User {{ item }}: <div id="progress_{{ item }}" style="width: 300px; height: 20px; border: 1px solid black; float:left;"></div>
-		<!--div id="user_info_{{ item }}"></div-->
+		<div>
+			User {{ item }}: <span id="user_info_{{ item }}"></span>
+			<div id="progress_{{ item }}" style="width: 300px; height: 20px; border: 1px solid black;"></div>
+			
+		</div>
 	{% endfor %}
 
 	<button id="control" type="button" style="margin: 10px">Start</button>
