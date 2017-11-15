@@ -22,6 +22,7 @@
 		
 		// For testing purposes, 100 seconds = 1 day
 		var PomodoroState = {
+		  OFFLINE : 0,
 		  STOPPED: 1,
 		  POMODORO: 2,
 		  BREAK: 3,
@@ -29,23 +30,51 @@
 
 		var user_id = {{ user_id }};
 		var num_users = {{ num_users }};
-		var pomodoro_state = PomodoroState.STOPPED;
+		var users = new Array(num_users); // this will be a dictionary soon with key user_id
+		//var pomodoro_state = PomodoroState.STOPPED;
 		var pomodoro_time = 10; // in seconds
 		var break_time = 4; // in seconds
-		var pomodoro_start; // start in seconds of current pomodoro
-		var pomodoros = {{ pomodoros }}; // [start, end, start, end, ...]
+		//var pomodoro_start; // start in seconds of current pomodoro
+		//var pomodoros = {{ pomodoros }}; // [start, end, start, end, ...]
 		var debug_start = {{ debug_start }};
 		
-		console.log(pomodoros);
+		// Initialize friends to default values.
+		for (i = 0; i < num_users; i++) {
+			users[i] = {};
+			users[i].pomodoro_state = PomodoroState.OFFLINE;
+			users[i].pomodoro_start = 0;
+		}
+		users[user_id].pomodoro_state = PomodoroState.STOPPED;
+		
+		//console.log(pomodoros);
 		
 		function render_progress() {
-			if (pomodoro_state == PomodoroState.POMODORO) {
-				$("#info").text("Work! Next break in " + Math.round(pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.");
-			} else if (pomodoro_state == PomodoroState.BREAK) {
-				$("#info").text("Take a break! Next pomodoro in " + Math.round(pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.");
+			if (users.length) {
+				if (users[user_id].pomodoro_state == PomodoroState.POMODORO) {
+					$("#info").text("Work! Next break in " + Math.round(users[user_id].pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.");
+				} else if (users[user_id].pomodoro_state == PomodoroState.BREAK) {
+					$("#info").text("Take a break! Next pomodoro in " + Math.round(users[user_id].pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.");
+				} else {
+					$("#info").text("Press start to start pomodoro");
+				}
+			
+			
+				for (i = 0; i < num_users; i++) {
+					var width;
+					var progress_html = "";
+					if (users[i].pomodoro_state == PomodoroState.POMODORO || users[i].pomodoro_state == PomodoroState.BREAK) {
+							if (users[i].pomodoro_state == PomodoroState.POMODORO) {
+								width = (get_rel_time() - users[i].pomodoro_start) * 100 / pomodoro_time;
+							} else {
+								width = (get_rel_time() - (users[i].pomodoro_start + pomodoro_time)) * 100 / break_time;
+							}
+							progress_html = '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
+					}
+					$("#progress_" + i).html(progress_html);
+				}
 			}
 			
-			for (i = 0; i < num_users; i++) { 
+			/*for (i = 0; i < num_users; i++) { 
 				var progress_html = "";
 				// render overview bar
 				// TODO: add offset in the beginning
@@ -71,11 +100,11 @@
 				width = get_rel_time() - pomodoro_start;
 				progress_html += '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
 				$("#progress_" + user_id).html($("#progress_" + user_id).html() + progress_html);
-			}
+			}*/
 			
 		}
 		
-		function get_pomodoros() {
+		/*function get_pomodoros() {
 			$.getJSON($SCRIPT_ROOT + '/_get_pomodoros', {
 						dummy: 42
 						}, function(data) {
@@ -87,28 +116,52 @@
 								}
 							}
 						});
+		}*/
+		
+		function user_status() {
+			$.getJSON($SCRIPT_ROOT + '/_user_status', {
+							user_id: user_id,
+							pomodoro_state: users[user_id].pomodoro_state,
+							pomodoro_start: users[user_id].pomodoro_start
+						}, function(data) {
+							// Copy everything except state of logged in user, because we have
+							// locally more recent state of logged in user.
+							for (i = 0; i < num_users; i++) {
+								if (i != user_id) {
+									users[i] = data.users[i];
+								}
+							}
+						});
 		}
 
 		function tick() {
-			if (pomodoro_state != PomodoroState.STOPPED) {
-				//console.log(get_rel_time());
-				
-				// first check if we have to go to a new state
-				if (pomodoro_state == PomodoroState.POMODORO && get_rel_time() > pomodoro_start + pomodoro_time) {
-					pomodoro_state = PomodoroState.BREAK;
-					add_pomodoro();
-				} else if (pomodoro_state == PomodoroState.BREAK && get_rel_time() > pomodoro_start + pomodoro_time + break_time) {
-					pomodoro_state = PomodoroState.POMODORO;
-					pomodoro_start = pomodoro_start + pomodoro_time + break_time;
+		
+			// we go from pomodoro to break and vice versa for all users in friends list
+			// by that if we receive for a longer time no update from a friend we still
+			// can display a guess for his current state
+			for (i = 0; i < users.length; i++) {
+				if (users[i].pomodoro_state == PomodoroState.POMODORO || users[i].pomodoro_state == PomodoroState.BREAK) {
+					// first check if we have to go to a new state
+					if (users[i].pomodoro_state == PomodoroState.POMODORO && get_rel_time() > users[i].pomodoro_start + pomodoro_time) {
+						users[i].pomodoro_state = PomodoroState.BREAK;
+						add_pomodoro();
+					} else if (users[i].pomodoro_state == PomodoroState.BREAK && get_rel_time() > users[i].pomodoro_start + pomodoro_time + break_time) {
+						users[i].pomodoro_state = PomodoroState.POMODORO;
+						users[i].pomodoro_start = users[i].pomodoro_start + pomodoro_time + break_time;
+					}
 				}
 			}
+			
 			
 			// poll other users pomodoros constantly
 			//get_pomodoros();
 			
+			// send currents user status and retrieve friends statuses
+			user_status();
+			
 			// then update UI
 			render_progress();
-			setTimeout(tick, 10); // TODO: more efficient
+			setTimeout(tick, 100); // TODO: more efficient
 		}
 
 		function get_rel_time() {
@@ -116,7 +169,7 @@
 		}
 
 		function add_pomodoro() {
-			pomodoros[user_id].push(pomodoro_start);
+			/*pomodoros[user_id].push(pomodoro_start);
 			pomodoro_end = get_rel_time()
 			pomodoros[user_id].push(pomodoro_end);
 			
@@ -128,7 +181,7 @@
 							console.log(data.result);
 						});
 			
-			console.log(pomodoros);
+			console.log(pomodoros);*/
 		}
 
 		$(document).ready(function() {
@@ -138,13 +191,13 @@
 			tick();
 			
 			$("#control").click(function() {
-				if (pomodoro_state == PomodoroState.STOPPED) {
-					pomodoro_state = PomodoroState.POMODORO;
-					pomodoro_start = get_rel_time();
+				if (users[user_id].pomodoro_state == PomodoroState.STOPPED) {
+					users[user_id].pomodoro_state = PomodoroState.POMODORO;
+					users[user_id].pomodoro_start = get_rel_time();
 					$("#control").text("Stop");
 					tick(); 
 				} else /* if (pomodoro_state == PomodoroState.POMODORO || pomodoro_state == PomodoroState.BREAK) */ {
-					pomodoro_state = PomodoroState.STOPPED;
+					users[user_id].pomodoro_state = PomodoroState.STOPPED;
 					$("#control").text("Start");
 					add_pomodoro();
 				}
@@ -158,10 +211,11 @@
 	Current user: {{ user_id }}<br>
 	
 	{% for item in range(num_users) %}
-		User {{ item }}: <div id="progress_{{ item }}" style="width: 600px; height: 20px; border: 1px solid black"></div>
+		User {{ item }}: <div id="progress_{{ item }}" style="width: 300px; height: 20px; border: 1px solid black; float:left;"></div>
+		<!--div id="user_info_{{ item }}"></div-->
 	{% endfor %}
 
 	<button id="control" type="button" style="margin: 10px">Start</button>
-	<div id="info">Press start to start first pomodoro</div>
+	<div id="info"></div>
 </body>
 </html>

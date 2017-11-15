@@ -1,28 +1,39 @@
 from flask import Flask, jsonify, render_template, request
+from enum import Enum
 import time
 app = Flask(__name__)
 
-#@app.route('/_send_status')
-#def send_status():
-#    pomodoro_status = request.args.get('pomodoro_status', 0, type=int)
+POMODOROSTATE_OFFLINE = 0
+POMODOROSTATE_STOPPED = 1
+POMODOROSTATE_POMODORO = 2
+POMODOROSTATE_BREAK = 3
 
 debug_start = time.time() # seconds since 1970
 num_users = 4
-pomodoros = [[] for x in range(num_users)]
+users = [{'pomodoro_state' : POMODOROSTATE_OFFLINE,
+          'pomodoro_start' : None,
+          'pomodoros' : []} for _ in range(num_users)]
+
+@app.route('/_user_status')
+def user_status():
+    user_id = request.args.get('user_id', type=int)
+    users[user_id]['pomodoro_state'] = request.args.get('pomodoro_state', 0, type=int)
+    users[user_id]['pomodoro_start'] = request.args.get('pomodoro_start', 0, type=float)
+    return jsonify(users=users)
 
 @app.route('/_add_pomodoro')
 def add_pomodoro():
     user_id = request.args.get('user_id', type=int)
     pomodoro_start = request.args.get('start', type=float)
     pomodoro_end = request.args.get('end', type=float)
-    pomodoros[user_id].append(pomodoro_start)
-    pomodoros[user_id].append(pomodoro_end)
-    print(pomodoros)
+    #pomodoros[user_id].append(pomodoro_start)
+    #pomodoros[user_id].append(pomodoro_end)
+    #print(pomodoros)
     return jsonify(result="Hello World!")
 
-@app.route('/_get_pomodoros')
-def get_pomodoros():
-    return jsonify(pomodoros=pomodoros)
+#@app.route('/_get_pomodoros')
+#def get_pomodoros():
+#    return jsonify(pomodoros=pomodoros)
 
 @app.route('/')
 def index():
@@ -31,4 +42,5 @@ def index():
                            user_id=user_id,
                            num_users=num_users,
                            debug_start=debug_start,
-                           pomodoros=pomodoros)
+                           #pomodoros=pomodoros
+                           )
