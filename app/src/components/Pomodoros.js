@@ -29,7 +29,7 @@ const users = (users) => (
         <thead>
         <tr>
             <th>
-
+                <div id="tick"></div>
             </th>
             <th>Name</th>
             <th>Active Pomodoro</th>
@@ -61,6 +61,7 @@ class Pomodoros extends Component {
         this.state = {
             timer: null,
             counter: 0,
+            delta_t: 0,
             users: [
                 {
                     id: 0,
@@ -95,9 +96,12 @@ class Pomodoros extends Component {
     }
 
     tick_clock(){
+        // Increment the counter
         const incr_time = this.state.counter + 1;
-        console.log(incr_time);
         this.setState({ counter: incr_time })
+
+        // bind actions to the tick
+        tick(this);
     }
 
     componentDidMount() {
@@ -195,9 +199,11 @@ const checkState = (props) => {
     }
 };
 
-const tick = (users) => {
-    console.log("tick: " + document.getElementById('timer').innerHTML);
-    document.getElementById('tick').innerHTML = document.getElementById('timer').innerHTML;
+const tick = (props) => {
+    let users = props.state.users;
+    const delta_t = props.state.delta_t;
+    document.getElementById('tick').innerHTML = delta_t;
+    props.setState({delta_t: delta_t + 1});
     users.map((user, index) => {
         if (user.pomodoro_state !== PomodoroState.STOPPED) {
             const rel_time = get_rel_time();
