@@ -86,7 +86,18 @@
 						} else {
 							width = (get_rel_time() - (users[i].pomodoro_start + pomodoro_time)) * 100 / break_time;
 						}
+						
+						// TODO: just dynamically modify width attribute of pre-existing HTML element
 						progress_html = '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
+						
+						// This check is nessecary because it doesnt make sense to sync with yourself.
+						if (i != user_id) {
+							$(".sync_button[data-user-id='" + i + "']").show();
+						}
+						
+				} else {
+					// Hide sync button for users that are not in a pomodoro/break currently.
+					$(".sync_button[data-user-id='" + i + "']").hide();
 				}
 				$("#progress_" + i).html(progress_html);
 				$("#user_info_" + i).text(pomodoro_state_to_string(users[i].pomodoro_state));
@@ -224,6 +235,13 @@
 				//$("#info").text(pomodoro_state)
 				return false;
 			});
+			
+			$(".sync_button").click(function() {
+				partner_id = $(this).attr("data-user-id");
+				console.log(partner_id);
+				users[user_id].pomodoro_start = users[partner_id].pomodoro_start;
+				users[user_id].pomodoro_state = users[partner_id].pomodoro_state;
+			});
 		});
 
 	</script>
@@ -231,14 +249,17 @@
 	Current user: {{ user_id }}<br>
 	
 	{% for item in range(num_users) %}
-		<div>
-			User {{ item }}: <span id="user_info_{{ item }}"></span>
-			<div id="progress_{{ item }}" style="width: 300px; height: 20px; border: 1px solid black;"></div>
-			
-		</div>
+		
+		<div "float: left">User {{ item }}: <span id="user_info_{{ item }}"></span></div>
+		<div id="progress_{{ item }}" style="width: 300px; height: 20px; border: 1px solid black; float: left"></div>
+		<button class="sync_button" data-user-id="{{ item }}"  style="margin-left: 10px; float: left;">Sync</button>
+		<div style="clear: both"></div>
+		
 	{% endfor %}
 
-	<button id="control" type="button" style="margin: 10px">Start</button>
+	
+
+	<button id="control" type="button" style="margin: 10px;">Start</button>
 	<div id="info"></div>
 </body>
 </html>
