@@ -144,7 +144,7 @@ const progressBar = (props) => {
     /*
     return: div element with progress_bar
      */
-    let progress_html = document.createElement('div');
+    let progress_html = "";
     for (let i = 0; i < props.pomodoros.length; i += 2) {
         let width = props.pomodoros[i + 1] - props.pomodoros[i]; // 1% = 1 second
         progress_html += progress_bar_block({width:width, bgcolor:"green"});
@@ -174,7 +174,6 @@ const toggle_pomodoro_state = (user) => {
     } else {
         user.pomodoro_state = PomodoroState.POMODORO;
     }
-
 };
 
 const set_pomodoro_start_time = (user) => {
@@ -197,10 +196,10 @@ const checkState = (props) => {
     const set_state_work = on_break && break_over;
 
     if (set_state_break) {
-        toggle_pomodoro_state(user);
+        user.pomodoro_state = PomodoroState.BREAK;
         add_pomodoro_to_user(user);
     } else if (set_state_work) {
-        toggle_pomodoro_state(user);
+        user.pomodoro_state = PomodoroState.POMODORO;
         set_pomodoro_start_time(user);
     }
 };
