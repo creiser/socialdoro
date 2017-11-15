@@ -56,15 +56,17 @@
 		var break_time = 4; // in seconds
 		//var pomodoro_start; // start in seconds of current pomodoro
 		//var pomodoros = {{ pomodoros }}; // [start, end, start, end, ...]
-		var debug_start = {{ debug_start }};
+		//var debug_start = {{ debug_start }};
 		
 		// Initialize friends to default values.
 		for (i = 0; i < num_users; i++) {
 			users[i] = {};
 			users[i].pomodoro_state = PomodoroState.OFFLINE;
 			users[i].pomodoro_start = 0;
+			users[i].pomodoros = [];
 		}
 		users[user_id].pomodoro_state = PomodoroState.STOPPED;
+		var got_first_update = false;
 		
 		//console.log(pomodoros);
 		
@@ -106,8 +108,7 @@
 				$("#user_info_" + i).text(pomodoro_state_to_string(users[i].pomodoro_state));
 			}
 			
-
-			
+			// This code renders "day overview".
 			/*for (i = 0; i < num_users; i++) { 
 				var progress_html = "";
 				// render overview bar
@@ -138,25 +139,22 @@
 			
 		}
 		
-		/*function get_pomodoros() {
-			$.getJSON($SCRIPT_ROOT + '/_get_pomodoros', {
-						dummy: 42
-						}, function(data) {
-							for (i = 0; i < num_users; i++) {
-								if (i != user_id) {
-									// Copy pomodoros of all friends except of current user because
-									// we have fresher info from current user.
-									pomodoros[i] = data.pomodoros[i];
-								}
-							}
-						});
-		}*/
-		
 		function user_status() {
+		
+			// Convert list to string of comma seperated values for GET request
+			// TODO: more elegant by just sending everything as a single JSON object
+			var pomodoros_string = "";
+			for (i = 0; i < users[user_id].pomodoros.length; i++) {
+				pomodoros_string += users[user_id].pomodoros[i];
+				if (i != users[user_id].pomodoros.length - 1)
+					pomodoros_string += ",";
+			}
+		
 			$.getJSON($SCRIPT_ROOT + '/_user_status', {
 							user_id: user_id,
 							pomodoro_state: users[user_id].pomodoro_state,
-							pomodoro_start: users[user_id].pomodoro_start
+							pomodoro_start: users[user_id].pomodoro_start,
+							pomodoros: pomodoros_string
 						}, function(data) {
 							// Copy everything except state of logged in user, because we have
 							// locally more recent state of logged in user.
@@ -164,6 +162,16 @@
 								if (i != user_id) {
 									users[i] = data.users[i];
 								}
+								
+								// Debug output pomodoros retrieved from server:
+								$("#pomodoros_" + i).text(users[i].pomodoros);
+							}
+							
+							// At the beginning retrieve pomodoros from server after
+							// that we are again in possession of more recent info.
+							if (!got_first_update) {
+								users[user_id].pomodoros = data.users[user_id].pomodoros;
+								got_first_update = true;
 							}
 						});
 		}
@@ -178,17 +186,15 @@
 					// first check if we have to go to a new state
 					if (users[i].pomodoro_state == PomodoroState.POMODORO && get_rel_time() > users[i].pomodoro_start + pomodoro_time) {
 						users[i].pomodoro_state = PomodoroState.BREAK;
-						add_pomodoro();
+						if (i == user_id) {
+							add_pomodoro();
+						}
 					} else if (users[i].pomodoro_state == PomodoroState.BREAK && get_rel_time() > users[i].pomodoro_start + pomodoro_time + break_time) {
 						users[i].pomodoro_state = PomodoroState.POMODORO;
 						users[i].pomodoro_start = users[i].pomodoro_start + pomodoro_time + break_time;
 					}
 				}
 			}
-			
-			
-			// poll other users pomodoros constantly
-			//get_pomodoros();
 			
 			// send currents user status and retrieve friends statuses
 			user_status();
@@ -198,29 +204,21 @@
 			setTimeout(tick, 100); // TODO: more efficient
 		}
 
+		// Returns time since 1970 in seconds (equivalent to Python: time.time())
 		function get_rel_time() {
-			return new Date().getTime() / 1000 - debug_start;
+			//return new Date().getTime() / 1000 - debug_start;
+			return new Date().getTime() / 1000;
 		}
 
 		function add_pomodoro() {
-			/*pomodoros[user_id].push(pomodoro_start);
-			pomodoro_end = get_rel_time()
-			pomodoros[user_id].push(pomodoro_end);
-			
-			$.getJSON($SCRIPT_ROOT + '/_add_pomodoro', {
-						user_id: user_id,
-						start: pomodoro_start,
-						end: pomodoro_end
-						}, function(data) {
-							console.log(data.result);
-						});
-			
-			console.log(pomodoros);*/
+			users[user_id].pomodoros.push(users[user_id].pomodoro_start);
+			users[user_id].pomodoros.push(get_rel_time());
+			console.log(users);
 		}
 
 		$(document).ready(function() {
 			//debug_start = new Date().getTime() / 1000;
-			console.log(debug_start);
+			//console.log(debug_start);
 			
 			tick();
 			
@@ -254,6 +252,7 @@
 		<div "float: left">User {{ item }}: <span id="user_info_{{ item }}"></span></div>
 		<div id="progress_{{ item }}" style="width: 300px; height: 20px; border: 1px solid black; float: left"></div>
 		<button class="sync_button" data-user-id="{{ item }}"  style="margin-left: 10px; float: left;">Sync</button>
+		<div id="pomodoros_{{ item }}" style="float: left">TEST</div>
 		<div style="clear: both"></div>
 		
 	{% endfor %}
