@@ -10,27 +10,33 @@ import Pomodoros from './components/Pomodoros';
 import LoginPage from './components/LoginPage';
 
 
+
 const routes = [
-        {
+    {
         path: '/',
+        props: null,
         exact: true,
         main: () => <Blueprint/>
     },
     {
         path: '/blueprint',
+        props: null,
         exact: true,
         main: () => <Blueprint/>
     },
     {
         path: '/second',
+        props: null,
         exact: true,
         main: () => <Pomodoros/>
     },
     {
         path: '/login',
+        props: null,
         exact: true,
         main: () => <LoginPage/>
     }
 ];
+
 
 export default routes;

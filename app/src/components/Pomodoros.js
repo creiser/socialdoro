@@ -3,9 +3,10 @@
  */
 
 import React, {Component} from 'react';
-import {Glyphicon, Table} from 'react-bootstrap';
+import {Col, Glyphicon, Table, Row} from 'react-bootstrap';
 
 import {get_user_status} from '../actions/api_actions';
+import UserPomodoro from './pomodoro/UserPomodoro';
 
 const PomodoroState = {
     STOPPED: 'STOPPED',
@@ -14,7 +15,7 @@ const PomodoroState = {
 };
 
 
-const DELTA_T = 1000;
+const DELTA_T = 10;
 
 
 let pomodoro_state = PomodoroState.STOPPED;
@@ -24,21 +25,36 @@ let POMODORO_START; // start in seconds of current pomodoro
 let pomodoros = []; // [start, end, start, end, ...]
 let debug_start = new Date().getTime() / 1000;
 
+const viewport_width = () => {
+    return Math.max(document.documentElement.clientWidth, window.innerWidth || 0)
+};
+
+
 const get_rel_time = () => {
     const time = new Date().getTime() / 1000 - debug_start;
     return time;
 };
-const users = (users) => {
+
+
+// USERS
+
+const users = (props) => {
+    return user_maps[props.size]
+};
+
+const users_lg = (users) => {
     return <Table responsive>
         <thead>
         <tr>
             <th>
-                <div id="tick"></div>
+
             </th>
             <th>Name</th>
             <th>Active Pomodoro</th>
             <th>Today's progress</th>
         </tr>
+        <Row sm={2} md={6} lg={8}></Row>
+
         </thead>
         <tbody>
         {users.map((user) =>
@@ -60,49 +76,52 @@ const users = (users) => {
         </tbody>
     </Table>
 };
+const users_sm = (users) => {
+    return <div>
+        {users.map((user) =>
+            <Table responsive>
+
+                <Row>
+                    <Col sm={4}>
+                        <Glyphicon id="control" glyph="play-circle" onClick={() => {
+                            console.log(user);
+                            toggle_pomodoro_state(user);
+                        }}
+                        />
+                    </Col>
+                    <Col sm={4}>
+                        <Glyphicon glyph="user"/>
+                    </Col>
+                </Row>
+
+                <Row>
+                    <div className={`pomodoro_${user.pomodoro_state}`}>{user.name}</div>
+                </Row>
+                <Row>
+                    <div id={`progress_${user.id}`} className="progress"></div>
+                </Row>
+
+                <div id="info"></div>
+
+            </Table>
+        )}
+    </div>
+};
+
+const user_maps = {sm: users_sm, lg: users_sm};
+
 
 class Pomodoros extends Component {
     constructor(props) {
+        console.log("Pomodoros.props: ");
+        console.log(props);
         super(props);
-        this.state = {
-            timer: null,
-            counter: 0,
-            delta_t: 0,
-            users: [
-                {
-                    id: 0,
-                    name: "Christian Reiser",
-                    active_pomodoro: "",
-                    progress: '2:30',
-                    pomodoro_start: null,
-                    pomodoro_state: PomodoroState.STOPPED,
-                    pomodoros: []
-                },
-                {
-                    id: 1,
-                    name: "Toni Väisänen",
-                    active_pomodoro: "",
-                    progress: '1:30',
-                    pomodoro_start: null,
-                    pomodoro_state: PomodoroState.STOPPED,
-                    pomodoros: []
-                },
-                {
-                    id: 2,
-                    name: "Foo Bar",
-                    active_pomodoro: "",
-                    progress: '4:30',
-                    pomodoro_start: null,
-                    pomodoro_state: PomodoroState.STOPPED,
-                    pomodoros: []
-                }
-            ]
-        },
-            this.tick_clock = this.tick_clock.bind(this);
-            this.load_statuses = this.load_statuses.bind(this);
+
+        this.tick_clock = this.tick_clock.bind(this);
+        this.load_statuses = this.load_statuses.bind(this);
     }
 
-    load_statuses(){
+    load_statuses() {
         get_user_status(this.state.users)
     }
 
@@ -123,21 +142,33 @@ class Pomodoros extends Component {
     }
 
     render() {
+        const v = viewport_width();
+        console.log("viewport width: " + v);
+        let rendered_users = rendered_users
+        //let rendered_users = users_lg(this.state.users);
+        if (v < 400) {
+            rendered_users = users_sm(this.state.users);
+        }
         return (
             <div>
-                {this.state.counter}
-                {users(this.state.users)}
+                <div id="info"></div>
+                <hr/>
+
+                <div id="control"></div>
+                {users.map((user) => {
+                   return <UserPomodoro user={user} size="md"/>
+                })}
                 <button id="test" onClick={this.load_statuses}>Test</button>
             </div>
         )
     }
 }
 
+UserPomodoro.propTypes = {
+    size: React.PropTypes.array.isRequired,
+};
+
 export default Pomodoros;
-
-
-
-
 
 
 const add_pomodoro_to_user = (user) => {
@@ -146,121 +177,8 @@ const add_pomodoro_to_user = (user) => {
     console.log(user.pomodoros);
 }
 
-const progress_bar_block = (props) => {
-    return '<div style="width: ' + props.width + '%; height: 21px; background-color:' + props.bgcolor + '; float: left;"></div>';
-};
 
-const progressBar = (props) => {
-    /*
-     return: div element with progress_bar
-     */
-    let progress_html = "";
-    for (let i = 0; i < props.pomodoros.length; i += 2) {
-        let width = props.pomodoros[i + 1] - props.pomodoros[i]; // 1% = 1 second
-        progress_html += progress_bar_block({width: width, bgcolor: "green"});
-        if (i + 2 < props.pomodoros.length) {
-            width = props.pomodoros[i + 2] - props.pomodoros[i + 1];
-            progress_html += progress_bar_block({width: width, bgcolor: "red"});
-        }
-    }
 
-    // current active pomodoro will be updated continously
-    if (props.pomodoro_state === PomodoroState.POMODORO) {
-        console.log("active update?");
-        if (props.pomodoros.length) {
-            let width = props.pomodoro_start - props.pomodoros[props.pomodoros.length - 1];
-            progress_html += progress_bar_block({width: width, bgcolor: "red"});
-        }
 
-        let width = props.rel_time - props.pomodoro_start;
-        progress_html += progress_bar_block({width: width, bgcolor: "green"});
-    }
-    return progress_html;
-};
 
-const toggle_pomodoro_state = (user) => {
-    if (user.pomodoro_state === PomodoroState.POMODORO) {
-        user.pomodoro_state = PomodoroState.STOPPED;
-    } else {
-        user.pomodoro_state = PomodoroState.POMODORO;
-    }
-};
 
-const set_pomodoro_start_time = (user) => {
-    user.pomodoro_start = user.pomodoro_start + POMODORO_TIME + BREAK_TIME;
-};
-
-const checkState = (props) => {
-
-    const user = props.user;
-    const rel_time = get_rel_time();
-
-    // conditions for changing state to break
-    const working = user.pomodoro_state === PomodoroState.POMODORO;
-    const rel_time_gt = rel_time > user.pomodoro_start + POMODORO_TIME;
-    const set_state_break = working && rel_time_gt;
-
-    // conditions for changing state to work
-    const on_break = user.pomodoro_state === PomodoroState.BREAK && rel_time;
-    const break_over = rel_time > user.pomodoro_start + POMODORO_TIME + BREAK_TIME;
-    const set_state_work = on_break && break_over;
-
-    if (set_state_break) {
-        user.pomodoro_state = PomodoroState.BREAK;
-        add_pomodoro_to_user(user);
-    } else if (set_state_work) {
-        user.pomodoro_state = PomodoroState.POMODORO;
-        set_pomodoro_start_time(user);
-    }
-};
-
-const tick = (props) => {
-    let users = props.state.users;
-    const delta_t = props.state.delta_t;
-    document.getElementById('tick').innerHTML = delta_t;
-    props.setState({delta_t: delta_t + 1});
-    users.map((user, index) => {
-        if (user.pomodoro_state !== PomodoroState.STOPPED) {
-            const rel_time = get_rel_time();
-
-            // first check if we have to go to a new state
-            checkState({user: user, rel_time: rel_time});
-
-            // generate the progress bar from users pomodore states
-            const pbar_id = "progress_" + user.id;
-            document.getElementById(pbar_id).innerHTML = progressBar({
-                rel_time: rel_time,
-                pomodoros: user.pomodoros,
-                pomodoro_state: user.pomodoro_state
-            });
-        }
-    });
-};
-
-const start = (users) => {
-    console.log("Start!");
-
-    users.map((user, index) => {
-        // Only do this if items have no stable IDs
-
-        const start_pomodoro = user.pomodoro_state === PomodoroState.STOPPED;
-        console.log(user.pomodoro_state + " == " + PomodoroState.STOPPED + " : " + start_pomodoro);
-
-        if (start_pomodoro) {
-            console.log('start');
-            toggle_pomodoro_state(user);
-
-            console.log("user: " + user.name + ", pomodoro: " + user.pomodoro_state);
-            user.pomodoro_start = get_rel_time();
-
-        } else {
-            console.log('stop');
-            toggle_pomodoro_state(user);
-            user.pomodoros.push(user.pomodoro_start);
-            user.pomodoros.push(get_rel_time());
-
-        }
-    });
-    //$("#info").textdocument.getElementById("control").innerText = (pomodoro_state)
-    return false;
-};

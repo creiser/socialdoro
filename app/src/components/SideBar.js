@@ -4,7 +4,7 @@ import {Nav, Row, Glyphicon} from 'react-bootstrap';
 import { iconNavLink } from './utils';
 
 const sideNavItems = [
-    {id: 2, path: "/second", glyph: "tasks"},
+    {id: 2, path: "/pomodoros", glyph: "tasks"},
 ];
 
 const rowStyle = {paddingTop: 20, fontSize: 30, color: '#000000'};

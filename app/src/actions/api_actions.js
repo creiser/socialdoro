@@ -7,7 +7,18 @@ const get_user_pomodor = () => {
 
 };
 
-const ROOT = 'http://localhost:3000'
+const pomodoro_state_map = {
+    STOPPED: 1,
+    POMODORO: 2,
+    BREAK: 3
+};
+
+const code_pomodoro_state_to_int = (state) => {
+    return pomodoro_state_map[state];
+}
+
+
+const ROOT = 'http://localhost:5000'
 
 export const get_user_status = (user) => {
 
@@ -35,7 +46,7 @@ export const get_user_status = (user) => {
 
         const promise = fetch(ROOT + '/_user_status', {
             user_id: user_id,
-            pomodoro_state: user.pomodoro_state,
+            pomodoro_state: code_pomodoro_state_to_int(user.pomodoro_state),
             pomodoro_start: user.pomodoro_start,
             pomodoros: pomodoros_string
         });
