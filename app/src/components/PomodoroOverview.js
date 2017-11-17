@@ -4,14 +4,16 @@
 
 import React, { Component } from 'react';
 
-class Friends extends Component {
+class PomodoroOverview extends Component {
     render(){
         return (
             <div>
-                <h1>Friends page content</h1>
+                <h1>OVERVIEW</h1>
             </div>
         )
     }
 }
 
-export default Friends;
+export default PomodoroOverview;
+
+const name = () => {};

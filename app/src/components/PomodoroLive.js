@@ -40,10 +40,10 @@ var pomodoro_time = 10; // in seconds
 var break_time = 4; // in seconds
 
 
-class SocialPomo extends Component {
+class PomodoroLive extends Component {
     constructor(props) {
         super(props);
-        const user_id = 3;
+        const user_id = 1;
         let num_users = 4;
         let users = new Array(4);
 
@@ -256,4 +256,4 @@ class SocialPomo extends Component {
     }
 }
 
-export default SocialPomo;
+export default PomodoroLive;
