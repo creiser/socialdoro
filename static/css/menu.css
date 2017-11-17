@@ -1,0 +1,16 @@
+
+
+
+.menu {
+    padding: 0;
+    list-style-type: none;
+}
+
+[class^="menu-item"]{
+    color: aquamarine;
+    cursor: pointer;
+} span:hover {
+    color: brown;
+    margin-left: 15px;
+  }
+

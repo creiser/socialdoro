@@ -1,7 +1,11 @@
 from flask import Flask, jsonify, render_template, request
 from enum import Enum
 import time
-app = Flask(__name__, static_url_path='')
+import os
+from flask_cors import CORS, cross_origin
+app = Flask(__name__, static_url_path='/../app/src')
+cors = CORS(app, resources={r"/api/*": {"origins": "*"}})
+
 
 POMODOROSTATE_OFFLINE = 0
 POMODOROSTATE_STOPPED = 1
@@ -17,7 +21,7 @@ users = [{'pomodoro_state' : POMODOROSTATE_OFFLINE,
 
 @app.route('/react_src')
 def root():
-    """ Serve the static index.html """
+    os.chdir('./app/src')
     return app.send_static_file('index.html')
 
 def check_for_timeouts():
@@ -27,20 +31,36 @@ def check_for_timeouts():
             users[i]['pomodoro_state'] = POMODOROSTATE_OFFLINE
 
 @app.route('/_user_status')
+@cross_origin()
 def user_status():
     try:
 
-        user_id = request.args.get('user_id', type=int)
-        if not isinstance(user_id, int):
-            raise ValueError('arg: user_id is wrong type. Expected int.')
+        debug = {
+            'error': ""
+        }
+        print(request.get_json())
 
-        users[user_id]['pomodoro_state'] = request.args.get('pomodoro_state', 0, type=int)
-        if not isinstance(users[user_id]['pomodoro_state'], int):
-            raise ValueError('arg: pomodoro_state is wrong type. Expected int.')
+        try:
+            user_id = request.args.get('user_id', type=int)
+            debug['user_id'] = "value: {}, type: {}".format(user_id, type(user_id)),
+        except Exception as e:
+            debug['user_id'] = str(e),
 
-        users[user_id]['pomodoro_start'] = request.args.get('pomodoro_start', 0, type=float)
-        if not isinstance(users[user_id]['pomodoro_state'], float):
-            raise ValueError('arg: pomodoro_state is wrong type. Expected float.')
+        try:
+            users[user_id]['pomodoro_state'] = request.args.get('pomodoro_state', 0, type=int)
+            pomodoro_state = users[user_id]['pomodoro_state']
+            debug['pomodoro_state'] = "value: {}, type: {}".format(pomodoro_state, type(pomodoro_state))
+        except Exception as e:
+            debug['pomodoro_state'] = str(e),
+
+        try:
+            users[user_id]['pomodoro_start'] = request.args.get('pomodoro_start', 0, type=float)
+            pomodoro_start = users[user_id]['pomodoro_start']
+            debug['pomodoro_start'] = "value: {}, type: {}".format(pomodoro_start, type(pomodoro_start))
+        except Exception as e:
+            debug['pomodoro_start'] = str(e),
+
+
 
         users[user_id]['last_update'] = time.time()
 
@@ -55,12 +75,13 @@ def user_status():
 
         check_for_timeouts() # TODO: put this check somewhere else, just a hack
     except Exception as e:
-        error_response = {'error_msg': str(e)}
+        error_response = {'error_msg': str(debug)}
         return jsonify(error=error_response)
 
     return jsonify(users=users)
 
 @app.route('/_add_pomodoro')
+@cross_origin()
 def add_pomodoro():
     user_id = request.args.get('user_id', type=int)
     pomodoro_start = request.args.get('start', type=float)

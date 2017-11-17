@@ -8,6 +8,7 @@ import {Row, Col} from 'react-bootstrap';
 
 import TabPage from './components/TabPage';
 import Pomodoros from './components/Pomodoros';
+import SocialPomo from './components/SocialPomo';
 import LoginPage from './components/LoginPage';
 
 import {PomodoroState,} from './components/pomodoro/commons';
@@ -63,7 +64,7 @@ const routes = [
         path: '/pomodoros',
         props: null,
         exact: true,
-        main: () => <Pomodoros users={users}/>
+        main: () => <SocialPomo users={users}/>
     },
     {
         path: '/login',

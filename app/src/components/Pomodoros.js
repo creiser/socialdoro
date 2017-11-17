@@ -7,6 +7,7 @@ import {Col, Glyphicon, Table, Row} from 'react-bootstrap';
 
 import {get_user_status} from '../actions/api_actions';
 import UserPomodoro from './pomodoro/UserPomodoro';
+import {toggle_pomodoro_state} from './pomodoro/commons';
 
 const PomodoroState = {
     STOPPED: 'STOPPED',
@@ -117,8 +118,8 @@ class Pomodoros extends Component {
         console.log(props);
         super(props);
 
-        this.tick_clock = this.tick_clock.bind(this);
-        this.load_statuses = this.load_statuses.bind(this);
+        //this.tick_clock = this.tick_clock.bind(this);
+        //this.load_statuses = this.load_statuses.bind(this);
     }
 
     load_statuses() {
@@ -131,14 +132,15 @@ class Pomodoros extends Component {
         this.setState({counter: incr_time})
 
         // bind actions to the tick
-        tick(this);
+        //tick(this);
+        //tick(this);
     }
 
     componentDidMount() {
-        start(this.state.users, this);
+        //start(this.state.users, this);
         // set app tick rate to DELTA_T
-        let timer = setInterval(this.tick_clock, DELTA_T);
-        this.setState({timer});
+        //let timer = setInterval(this.tick_clock, DELTA_T);
+        //this.setState({timer});
     }
 
     render() {
@@ -170,6 +172,7 @@ UserPomodoro.propTypes = {
 
 export default Pomodoros;
 
+const tick = () => {};
 
 const add_pomodoro_to_user = (user) => {
     user.pomodoros.push(user.pomodoro_start);
