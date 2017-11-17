@@ -1,9 +1,6 @@
 import React, {Component} from 'react';
 import './App.css';
 
-
-import {Router, Route, NavLink} from 'react-router-dom';
-
 import PomodoroLive from './components/PomodoroLive';
 import PomodoroOverview from './components/PomodoroOverview';
 import PomodoroNavbar from './components/PomodoroNavbar';
