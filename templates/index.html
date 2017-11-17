@@ -1,23 +1,20 @@
-<!doctype html>
-
-<html lang="en">
-<head>
-	<meta charset="utf-8">
-
-	<title>Socialdoro</title>
-	<meta name="description" content="TODO">
-	<meta name="author" content="Toni Vaisanen, Christian Reiser">
-
-	<!--link rel="stylesheet" href="css/styles.css?v=1.0"-->
-
-	<!--[if lt IE 9]>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv.js"></script>
-	<![endif]-->
-</head>
-
-<body>
+<!DOCTYPE html>
+<html>
+  <head lang="en">
+    <meta charset="UTF-8">
+    <title>Flask React</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- styles -->
+  </head>
+  <body>
+    <div id="root">
+    </div>
+    <!-- scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.1.0/react-dom.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/react/0.13.3/JSXTransformer.js"></script>
 	<script src="http://code.jquery.com/jquery-latest.js"></script>
-	<script type="text/javascript">
+    <script type="text/jsx">
 		var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
 		
 		// For testing purposes, 100 seconds = 1 day
@@ -30,7 +27,7 @@
 		
 		function pomodoro_state_to_string(pomodoro_state) {
 			var string;
-			switch (users[i].pomodoro_state)
+			switch (pomodoro_state)
 			{
 				case PomodoroState.OFFLINE:
 					string = "offline";
@@ -47,225 +44,229 @@
 			}
 			return string;
 		}
-
-		var user_id = {{ user_id }};
-		var num_users = {{ num_users }};
-		var users = new Array(num_users); // this will be a dictionary soon with key user_id
-		var pomodoro_time = 10; // in seconds
-		var break_time = 4; // in seconds
-		//var debug_start = {{ debug_start }};
 		
-		// Initialize friends to default values.
-		for (i = 0; i < num_users; i++) {
-			users[i] = {};
-			users[i].pomodoro_state = PomodoroState.OFFLINE;
-			users[i].pomodoro_start = 0;
-			users[i].pomodoros = [];
-		}
-		users[user_id].pomodoro_state = PomodoroState.STOPPED;
-		var got_first_update = false;
-		var real_pomodoro_start;
-		
-		//console.log(pomodoros);
-		
-		function render_progress() {
-			if (users[user_id].pomodoro_state == PomodoroState.POMODORO) {
-				$("#info").text("Work! Next break in " + Math.round(users[user_id].pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.");
-				$("#control").text("Stop");
-			} else if (users[user_id].pomodoro_state == PomodoroState.BREAK) {
-				$("#info").text("Take a break! Next pomodoro in " + Math.round(users[user_id].pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.");
-				$("#control").text("Stop");
-			} else {
-				$("#info").text("Press start to start pomodoro");
-				$("#control").text("Start");
-			}
-		
-			for (i = 0; i < num_users; i++) {
-				var width;
-				var progress_html = "";
-				if (users[i].pomodoro_state == PomodoroState.POMODORO || users[i].pomodoro_state == PomodoroState.BREAK) {
-						if (users[i].pomodoro_state == PomodoroState.POMODORO) {
-							width = (get_rel_time() - users[i].pomodoro_start) * 100 / pomodoro_time;
-						} else {
-							width = (get_rel_time() - (users[i].pomodoro_start + pomodoro_time)) * 100 / break_time;
-						}
-						
-						// TODO: just dynamically modify width attribute of pre-existing HTML element
-						progress_html = '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
-						
-						// This check is nessecary because it doesnt make sense to sync with yourself.
-						if (i != user_id) {
-							$(".sync_button[data-user-id='" + i + "']").show();
-						}
-						
-				} else {
-					// Hide sync button for users that are not in a pomodoro/break currently.
-					$(".sync_button[data-user-id='" + i + "']").hide();
-				}
-				$("#progress_" + i).html(progress_html);
-				$("#user_info_" + i).text(pomodoro_state_to_string(users[i].pomodoro_state));
-			}
-			
-			// This code renders "day overview".
-			/*for (i = 0; i < num_users; i++) { 
-				var progress_html = "";
-				// render overview bar
-				// TODO: add offset in the beginning
-				for (var j = 0; j < pomodoros[i].length; j += 2) {
-					var width = pomodoros[i][j + 1] - pomodoros[i][j]; // 1% = 1 second
-					progress_html += '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
-					if (j + 2 < pomodoros[i].length) {
-						width = pomodoros[i][j + 2] - pomodoros[i][j + 1];
-						progress_html += '<div style="width: ' + width + '%; height: 21px; float: left;"></div>';
-					}
-				}
-				$("#progress_" + i).html(progress_html);
-			}
-			
-			// current active pomodoro will be updated continously
-			if (pomodoro_state == PomodoroState.POMODORO) {
-				var progress_html = "";
-				if (pomodoros[user_id].length) {
-					var width = pomodoro_start - pomodoros[user_id][pomodoros[user_id].length - 1];
-					progress_html += '<div style="width: ' + width + '%; height: 21px; float: left;"></div>';
-				}
-				
-				width = get_rel_time() - pomodoro_start;
-				progress_html += '<div style="width: ' + width + '%; height: 21px; background-color: green; float: left;"></div>';
-				$("#progress_" + user_id).html($("#progress_" + user_id).html() + progress_html);
-			}*/
-			
-		}
-		
-		function user_status() {
-		
-			// Convert list to string of comma seperated values for GET request
-			// TODO: more elegant by just sending everything as a single JSON object
-			var pomodoros_string = "";
-			for (i = 0; i < users[user_id].pomodoros.length; i++) {
-				pomodoros_string += users[user_id].pomodoros[i];
-				if (i != users[user_id].pomodoros.length - 1)
-					pomodoros_string += ",";
-			}
-		
-			$.getJSON($SCRIPT_ROOT + '/_user_status', {
-							user_id: user_id,
-							pomodoro_state: users[user_id].pomodoro_state,
-							pomodoro_start: users[user_id].pomodoro_start,
-							pomodoros: pomodoros_string
-						}, function(data) {
-							// Copy everything except state of logged in user, because we have
-							// locally more recent state of logged in user.
-							for (i = 0; i < num_users; i++) {
-								if (i != user_id) {
-									users[i] = data.users[i];
-								}
-								
-								// Debug output pomodoros retrieved from server:
-								$("#pomodoros_" + i).text(users[i].pomodoros);
-							}
-							
-							// At the beginning retrieve pomodoros from server after
-							// that we are again in possession of more recent info.
-							if (!got_first_update) {
-								users[user_id].pomodoros = data.users[user_id].pomodoros;
-								got_first_update = true;
-							}
-						});
-		}
-
-		function tick() {
-		
-			// we go from pomodoro to break and vice versa for all users in friends list
-			// by that if we receive for a longer time no update from a friend we still
-			// can display a guess for his current state
-			for (i = 0; i < users.length; i++) {
-				if (users[i].pomodoro_state == PomodoroState.POMODORO || users[i].pomodoro_state == PomodoroState.BREAK) {
-					// first check if we have to go to a new state
-					if (users[i].pomodoro_state == PomodoroState.POMODORO && get_rel_time() > users[i].pomodoro_start + pomodoro_time) {
-						users[i].pomodoro_state = PomodoroState.BREAK;
-						if (i == user_id) {
-							add_pomodoro();
-						}
-					} else if (users[i].pomodoro_state == PomodoroState.BREAK && get_rel_time() > users[i].pomodoro_start + pomodoro_time + break_time) {
-						users[i].pomodoro_state = PomodoroState.POMODORO;
-						real_pomodoro_start = users[i].pomodoro_start = users[i].pomodoro_start + pomodoro_time + break_time;
-					}
-				}
-			}
-			
-			// send currents user status and retrieve friends statuses
-			user_status();
-			
-			// then update UI
-			render_progress();
-			setTimeout(tick, 100); // TODO: more efficient
-		}
-
 		// Returns time since 1970 in seconds (equivalent to Python: time.time())
 		function get_rel_time() {
 			//return new Date().getTime() / 1000 - debug_start;
 			return new Date().getTime() / 1000;
 		}
-
-		function add_pomodoro() {
-			users[user_id].pomodoros.push(real_pomodoro_start);
-			users[user_id].pomodoros.push(get_rel_time());
-			console.log(users);
-		}
-
-		$(document).ready(function() {
-			//debug_start = new Date().getTime() / 1000;
-			//console.log(debug_start);
-			
-			tick();
-			
-			$("#control").click(function() {
-				if (users[user_id].pomodoro_state == PomodoroState.STOPPED) {
-					users[user_id].pomodoro_state = PomodoroState.POMODORO;
-					real_pomodoro_start = users[user_id].pomodoro_start = get_rel_time();
-					tick(); 
-				} else /* if (pomodoro_state == PomodoroState.POMODORO || pomodoro_state == PomodoroState.BREAK) */ {
-					users[user_id].pomodoro_state = PomodoroState.STOPPED;
-					add_pomodoro();
+		
+		var pomodoro_time = 10; // in seconds
+		var break_time = 4; // in seconds
+		
+		class SocialPomo extends React.Component {
+			constructor() {
+				super();
+				
+				var user_id = {{user_id}};
+				var num_users = {{ num_users }};
+				var users = new Array(num_users);
+				
+				// Initialize friends to default values.
+				for (let i = 0; i < num_users; i++) {
+					users[i] = {};
+					users[i].pomodoro_state = PomodoroState.OFFLINE;
+					users[i].pomodoro_start = 0;
+					users[i].pomodoros = [];
 				}
-				//$("#info").text(pomodoro_state)
-				return false;
-			});
+				users[user_id].pomodoro_state = PomodoroState.STOPPED;
+				
+				this.state = {
+					user_id: user_id,
+					num_users: num_users,
+					users: users
+				};
+				
+				this.got_first_update = false;
+				this.real_pomodoro_start = null;
+			}
 			
-			$(".sync_button").click(function() {
-				partner_id = $(this).attr("data-user-id");
+			componentDidMount() {
+				this.timerID = setInterval(
+				  () => this.tick(),
+				  100
+				);
+			}
+			
+			componentWillUnmount() {
+				clearInterval(this.timerID);
+			}
+			
+			render() {
+				const rows = this.state.users.map((user, i) => {
+					var width = 0;
+					
+					if (user.pomodoro_state == PomodoroState.POMODORO) {
+						width = (get_rel_time() - user.pomodoro_start) * 100 / pomodoro_time;
+					} else if (user.pomodoro_state == PomodoroState.BREAK) {
+						width = (get_rel_time() - (user.pomodoro_start + pomodoro_time)) * 100 / break_time;
+					}
+					// Instead of performing predictive state changes for all users, we just define that maximum here!!
+					// This is simple and more robust!
+					width = Math.min(100, width);
+					
+					// Display the sync button for all OTHER users that are either in pomodoro or in break.
+					var sync_button_display = 
+						(user.pomodoro_state == PomodoroState.POMODORO ||
+						user.pomodoro_state == PomodoroState.BREAK) && 
+						i != this.state.user_id ? 'inline' : 'none';
+					
+					return (
+						<div>
+							<div>User {i}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
+							<div style={ { width: '300px', height: '20px', float: 'left', border: '1px solid black' } } >
+								<div style={ { width: width + '%', height: '21px', backgroundColor: 'green' } } ></div>
+							</div>
+							<button onClick={() => this.onSyncClicked(this, i)} style={ { marginLeft: '10px', float: 'left', display: sync_button_display } }>Sync</button>
+							<div style={ { clear: 'both' } }>{user.pomodoros}</div>
+						</div>
+					);
+				});
+				
+				// Current user specific
+				var info_text = 'Press start to start pomodoro';
+
+				var current_user = this.state.users[this.state.user_id];
+				if (current_user.pomodoro_state == PomodoroState.POMODORO) {
+					info_text = "Work! Next break in " + Math.round(current_user.pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.";
+				} else if (current_user.pomodoro_state == PomodoroState.BREAK) {
+					info_text = "Take a break! Next pomodoro in " + Math.round(current_user.pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.";
+				}
+				
+				var control_button_text = current_user.pomodoro_state == PomodoroState.POMODORO ||
+					current_user.pomodoro_state == PomodoroState.BREAK  ? 'Stop' : 'Start';
+				
+				return (
+					<div>
+						Current user: {{ user_id }}
+						{rows}
+						<button onClick={() => this.onControlClicked(this)} style={ { margin: '10px' } } >{control_button_text}</button>
+						<div>{info_text}</div>
+					</div>
+				);
+			}
+			
+			user_status() {
+				var current_user = this.state.users[this.state.user_id];
+				
+				// Convert list to string of comma seperated values for GET request
+				// TODO: more elegant by just sending everything as a single JSON object
+				var pomodoros_string = "";
+				for (var i = 0; i < current_user.pomodoros.length; i++) {
+					pomodoros_string += current_user.pomodoros[i];
+					if (i != current_user.pomodoros.length - 1)
+						pomodoros_string += ",";
+				}
+				
+				var pass_this = this;
+			
+				$.getJSON($SCRIPT_ROOT + '/_user_status', {
+					user_id: this.state.user_id,
+					pomodoro_state: current_user.pomodoro_state,
+					pomodoro_start: current_user.pomodoro_start,
+					pomodoros: pomodoros_string
+					}, function(data) {
+						var users = pass_this.state.users.slice(); // Important to work on copy with React!
+									
+						// Copy everything except state of logged in user, because we have
+						// locally more recent state of logged in user.
+						for (var i = 0; i < pass_this.state.num_users; i++) {
+							if (i != pass_this.state.user_id) {
+								users[i] = data.users[i];
+							}
+							
+							// TODO: this is probably automatic now.
+							// Debug output pomodoros retrieved from server:
+							//$("#pomodoros_" + i).text(users[i].pomodoros);
+						}
+						
+						// At the beginning retrieve pomodoros from server after
+						// that we are again in possession of more recent info.
+						if (!pass_this.got_first_update) {
+							users[pass_this.state.user_id].pomodoros = data.users[pass_this.state.user_id].pomodoros;
+							pass_this.got_fist_update = true;
+						}
+						
+						// Push changes to React.
+						pass_this.setState({users: users});
+						
+						
+					});
+			}
+			
+			add_pomodoro() {
+				var users = this.state.users.slice();
+				users[this.state.user_id].pomodoros.push(this.real_pomodoro_start);
+				users[this.state.user_id].pomodoros.push(get_rel_time());
+				this.setState({users: users});
+				console.log(this.state.users);
+			}
+			
+			tick() {
+				var users = this.state.users.slice();
+		
+				// we go from pomodoro to break and vice versa for all users in friends list
+				// by that if we receive for a longer time no update from a friend we still
+				// can display a guess for his current state
+				for (var i = 0; i < users.length; i++) {
+					
+					// TODO: remove loop and just update current user, prediction of other users is not nessecary anymore!
+					if (i != this.state.user_id)
+						continue;
+					
+					if (users[i].pomodoro_state == PomodoroState.POMODORO || users[i].pomodoro_state == PomodoroState.BREAK) {
+						// first check if we have to go to a new state
+						if (users[i].pomodoro_state == PomodoroState.POMODORO && get_rel_time() > users[i].pomodoro_start + pomodoro_time) {
+							users[i].pomodoro_state = PomodoroState.BREAK;
+							if (i == this.state.user_id) {
+								this.add_pomodoro();
+							}
+						} else if (users[i].pomodoro_state == PomodoroState.BREAK && get_rel_time() > users[i].pomodoro_start + pomodoro_time + break_time) {
+							users[i].pomodoro_state = PomodoroState.POMODORO;
+							this.real_pomodoro_start = users[i].pomodoro_start = users[i].pomodoro_start + pomodoro_time + break_time;
+						}
+					}
+				}
+				
+				this.setState({users: users});
+				
+				// send currents user status and retrieve friends statuses
+				this.user_status();
+			}
+			
+			onControlClicked(pass_this) {
+				var users = pass_this.state.users.slice();
+				
+				if (users[pass_this.state.user_id].pomodoro_state == PomodoroState.STOPPED) {
+					users[pass_this.state.user_id].pomodoro_state = PomodoroState.POMODORO;
+					pass_this.real_pomodoro_start = users[pass_this.state.user_id].pomodoro_start = get_rel_time();
+				} else /* if (pomodoro_state == PomodoroState.POMODORO || pomodoro_state == PomodoroState.BREAK) */ {
+					users[pass_this.state.user_id].pomodoro_state = PomodoroState.STOPPED;
+					pass_this.add_pomodoro();
+				}
+				
+				pass_this.setState({users: users});
+			}
+			
+			onSyncClicked(pass_this, partner_id) {
+				var users = pass_this.state.users.slice();
 				
 				// If we are right now in a pomodoro, save it as a seperate unit.
-				if (users[user_id].pomodoro_state == PomodoroState.POMODORO) {
-					add_pomodoro();
+				if (users[pass_this.state.user_id].pomodoro_state == PomodoroState.POMODORO) {
+					pass_this.add_pomodoro();
 				}
 				
 				// Here is why we introduced real_pomodoro_start, because in this
 				// scenario pomodoro_start and real_pomodoro_start diverge.
-				real_pomodoro_start = get_rel_time();
-				users[user_id].pomodoro_start = users[partner_id].pomodoro_start;
-				users[user_id].pomodoro_state = users[partner_id].pomodoro_state;
-			});
-		});
-
-	</script>
-	
-	Current user: {{ user_id }}<br>
-	
-	{% for item in range(num_users) %}
+				pass_this.real_pomodoro_start = get_rel_time();
+				users[pass_this.state.user_id].pomodoro_start = users[partner_id].pomodoro_start;
+				users[pass_this.state.user_id].pomodoro_state = users[partner_id].pomodoro_state;
+				
+				pass_this.setState({users: users});
+			}
+		}
 		
-		<div "float: left">User {{ item }}: <span id="user_info_{{ item }}"></span></div>
-		<div id="progress_{{ item }}" style="width: 300px; height: 20px; border: 1px solid black; float: left"></div>
-		<button class="sync_button" data-user-id="{{ item }}"  style="margin-left: 10px; float: left;">Sync</button>
-		<div id="pomodoros_{{ item }}" style="float: left">TEST</div>
-		<div style="clear: both"></div>
-		
-	{% endfor %}
-
-	
-
-	<button id="control" type="button" style="margin: 10px;">Start</button>
-	<div id="info"></div>
-</body>
+		ReactDOM.render(<SocialPomo />, document.getElementById('root'));
+    </script>
+  </body>
 </html>
