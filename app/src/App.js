@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import './App.css';
 
-
+import FBLogingComponent, {fbLogin, getUserFriendlists} from './components/FBActions';
 import PomodoroLive from './components/PomodoroLive';
 import PomodoroPersonal from './components/PomodoroPersonal';
 import PomodoroOverview from './components/PomodoroOverview';
@@ -10,6 +10,7 @@ import $ from 'jquery';
 
 import {PomodoroState, get_rel_time, pomodoro_time, break_time, getUrlParameter} from './Util';
 import {Button, Col, Row} from 'react-bootstrap';
+
 
 class App extends Component {
     constructor(props) {
@@ -30,11 +31,39 @@ class App extends Component {
 
         this.state = {
             user_id: user_id,
-            users: users
+            users: users,
+            facebook_user: null,
+            facebook_friends: []
         };
 
 
         this.got_first_update = false;
+        this.setFBuser = this.setFBuser.bind(this);
+        this.setFBFriends = this.setFBFriends.bind(this);
+        this.logoutFBuser = this.logoutFBuser.bind(this);
+    }
+
+    setFBuser(user){
+        this.setState({facebook_user: user});
+        console.info(this.state);
+        getUserFriendlists(user.id, (response) => 
+                {
+                this.setState({facebook_friends: response.data});
+                console.log(this.state);
+            });
+
+
+    }
+
+    setFBFriends(users){
+        this.setState({facebook_friends: users});
+        console.info(this.state);
+    }
+
+    logoutFBuser(){
+        const username = this.state.facebook_user.name;
+        this.setState({facebook_user: null})
+        alert('User ' + username + 'logged out!');
     }
 
     componentDidMount() {
@@ -158,11 +187,36 @@ class App extends Component {
         this.setState({users: users});
     }
 
+
     render() {
+        const userLogged = this.state.facebook_user != null;
+        let userIcon = ""
+        let userName = "Username";
+        let userId = 0;
+
+        if (userLogged) {
+            userIcon = this.state.facebook_user.picture.data.url;
+            userId = this.state.facebook_user.id;
+            // console.info("UserIcon");
+            // console.info(userIcon);
+        } else {
+            // show stuff and the user icon
+        }
         return (
             <div className="app">
-                <PomodoroNavbar />
+                <PomodoroNavbar
+                    userIcon={userIcon}
+                    userName={userName}
+                    logout={this.logoutFBuser}
+                />
 
+                <Col xs={4} sm={4} md={2} lg={2} xsOffset={4} smOffset={4} mdOffset={5} lgOffset={5}>
+                   <FBLogingComponent
+                       setLoggedUser={this.setFBuser}
+                       setUserFriends={this.setFBFriends}
+                   />
+                    <div id="debug"></div>
+                </Col>
 
                 <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
                     <PomodoroPersonal />

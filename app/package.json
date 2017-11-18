@@ -3,18 +3,19 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "react-scripts": "0.9.5",
+    "react-scripts": "*",
     "react-sidenav": "^2.0.6",
     "styled-components": "^1.4.4"
   },
   "dependencies": {
     "jquery": "^3.2.1",
+    "rc-progress": "*",
     "react": "^15.5.3",
     "react-bootstrap": "^0.30.8",
     "react-dom": "^15.5.3",
+    "react-facebook-login": "^3.7.0",
     "react-redux": "^5.0.4",
-    "react-router-dom": "^4.0.0",
-    "rc-progress": "*"
+    "react-router-dom": "^4.0.0"
   },
   "scripts": {
     "start": "react-scripts start",
