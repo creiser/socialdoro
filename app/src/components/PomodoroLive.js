@@ -28,7 +28,20 @@ function pomodoro_state_to_string(pomodoro_state) {
 
 class PomodoroLive extends Component {
     render() {
-        const rows = this.props.users.map((user, i) => {
+		if (!this.props.users)
+			return <div></div>;
+		
+		// HACK: convert dict to array for rendering
+		var user_array = [];
+		for (var user_id in this.props.users) {
+			if (this.props.users.hasOwnProperty(user_id)) {
+				var user = this.props.users[user_id];
+				user.user_id = user_id;
+				user_array.push(this.props.users[user_id]);
+			}
+		}
+		
+        const rows = user_array.map((user, i) => {
 			var stroke_color = user.pomodoro_state == PomodoroState.POMODORO ? 'red' : 'green';
             var width = getUserProgressInPercent(user);
 
@@ -36,9 +49,8 @@ class PomodoroLive extends Component {
             var sync_button_display =
                 (user.pomodoro_state == PomodoroState.POMODORO ||
                 user.pomodoro_state == PomodoroState.BREAK) &&
-                i != this.props.user_id ? 'inline' : 'none';
+                user.user_id != this.props.user_id ? 'inline' : 'none';
 				
-			
 			// TODO: We could pack this into a function.
 			var total_pomodoro_time = 0;
 			for (var j = 0; j < user.pomodoros.length; j += 2) {
@@ -52,9 +64,9 @@ class PomodoroLive extends Component {
 
             return (
                 <div>
-                    <div>User {i}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
+                    <div>User {user.user_id}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
 					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor={stroke_color} />
-                    <button onClick={() => this.props.onSyncClick(i)}
+                    <button onClick={() => this.props.onSyncClick(user.user_id)}
                             style={ {marginLeft: '10px', float: 'left', display: sync_button_display} }>Sync
                     </button>
                     <div style={ {clear: 'both'} }>Total time: {Math.round(total_pomodoro_time)}</div>

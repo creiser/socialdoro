@@ -9,6 +9,9 @@ import { Button } from 'react-bootstrap';
 
 class PomodoroPersonal extends Component {
     render() {
+		if (!this.props.users)
+			return <div></div>;
+		
 		var stroke_color = this.props.users[this.props.user_id].pomodoro_state == PomodoroState.POMODORO ? 'red' : 'green';
 		var width = getUserProgressInPercent(this.props.users[this.props.user_id]);
 		

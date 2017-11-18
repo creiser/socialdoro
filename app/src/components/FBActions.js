@@ -57,7 +57,6 @@ export default class FBLoginComponent extends Component {
         this.setLoggedUser = props.setLoggedUser;
     }
 
-
     render() {
         return (
             <div>

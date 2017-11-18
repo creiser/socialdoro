@@ -15,40 +15,52 @@ import {Button, Col, Row} from 'react-bootstrap';
 class App extends Component {
     constructor(props) {
         super(props);
-        const user_id = getUrlParameter('user_id') ? getUrlParameter('user_id') : 0;
-        const num_users = 4;
-        let users = new Array(num_users);
-
-        // Initialize friends to default values.
-        for (let i = 0; i < users.length; i++) {
-            users[i] = {};
-            users[i].pomodoro_state = PomodoroState.OFFLINE;
-            users[i].pomodoro_start = 0;
-            users[i].real_pomodoro_start = 0;
-            users[i].pomodoros = [];
-        }
-        users[user_id].pomodoro_state = PomodoroState.STOPPED;
-
+		
+		// For the moment I just kept the user_id variable, so the code only has to be minimally adapted.
         this.state = {
-            user_id: user_id,
-            users: users,
+			user_id: "",
+            users: null,
             facebook_user: null,
             facebook_friends: []
         };
-
 
         this.got_first_update = false;
         this.setFBuser = this.setFBuser.bind(this);
         this.setFBFriends = this.setFBFriends.bind(this);
         this.logoutFBuser = this.logoutFBuser.bind(this);
     }
+	
 
     setFBuser(user){
-        this.setState({facebook_user: user});
-        const id = this.state.facebook_user.id || false;
-        if (id){
-            getUserFriendlists(this.state.facebook_user.id, (response) =>  {
-                this.setState({facebook_friends: response.data});
+        this.setState({user_id: user.id, facebook_user: user});
+		
+        if (this.state.user_id) {
+            getUserFriendlists(this.state.user_id, (response) =>  {
+				var facebook_friends = response.data;
+
+				// Initialize friends to default values.
+				let users = {};
+				for (let i = 0; i < facebook_friends.length; i++) {
+					users[facebook_friends[i].id] = {};
+					users[facebook_friends[i].id].pomodoro_state = PomodoroState.OFFLINE;
+					users[facebook_friends[i].id].pomodoro_start = 0;
+					users[facebook_friends[i].id].real_pomodoro_start = 0;
+					users[facebook_friends[i].id].pomodoros = [];
+				}
+				
+				// Ugly copy & paste: (only pomodoro_state is different)
+				users[this.state.user_id] = {};
+				users[this.state.user_id].pomodoro_state = PomodoroState.STOPPED;
+				users[this.state.user_id].pomodoro_start = 0;
+				users[this.state.user_id].real_pomodoro_start = 0;
+				users[this.state.user_id].pomodoros = [];
+				
+				console.log(users);
+				console.log("fb friends:");
+				console.log(facebook_friends);
+				
+                this.setState({users: users,
+					facebook_friends: facebook_friends});
             });
         }
     }
@@ -73,18 +85,31 @@ class App extends Component {
     componentWillUnmount() {
         clearInterval(this.timerID);
     }
+	
+	array_to_string(array) {
+		var string = "";
+        for (var i = 0; i < array.length; i++) {
+            string += array[i];
+            if (i != array.length - 1)
+                string += ",";
+        }
+		return string;
+	}
 
     user_status() {
         var current_user = this.state.users[this.state.user_id];
 
         // Convert list to string of comma seperated values for GET request
         // TODO: more elegant by just sending everything as a single JSON object
-        var pomodoros_string = "";
-        for (var i = 0; i < current_user.pomodoros.length; i++) {
-            pomodoros_string += current_user.pomodoros[i];
-            if (i != current_user.pomodoros.length - 1)
-                pomodoros_string += ",";
-        }
+        var pomodoros_string = this.array_to_string(current_user.pomodoros);
+		console.log(current_user.pomodoros);
+		
+		// Just create a list of current users friends that are then passed to the server
+		var friend_ids = [];
+		for (var i = 0; i < this.state.facebook_friends.length; i++) {
+			friend_ids.push(this.state.facebook_friends[i].id);
+		}
+		var friend_string = this.array_to_string(friend_ids);
 
         var pass_this = this;
 
@@ -93,21 +118,26 @@ class App extends Component {
             pomodoro_state: current_user.pomodoro_state,
             pomodoro_start: current_user.pomodoro_start,
             real_pomodoro_start: current_user.real_pomodoro_start,
-            pomodoros: pomodoros_string
+            pomodoros: pomodoros_string,
+			friend_ids: friend_string
         }, function (data) {
-            var users = pass_this.state.users.slice(); // Important to work on copy with React!
-
+            var users = JSON.parse(JSON.stringify(pass_this.state.users)); // Important to work on copy with React!
+			
+			// Copy everything except state of logged in user, because we have
+            // locally more recent state of logged in user.
+			for (var fb_id in users) {
+				// check if the property/key is defined in the object itself, not in parent
+				if (users.hasOwnProperty(fb_id) && fb_id != pass_this.state.user_id) {
+					users[fb_id] = data.users[fb_id];
+					//console.log(fb_id, users[fb_id]);
+				}
+			}
             // Copy everything except state of logged in user, because we have
             // locally more recent state of logged in user.
-            for (var i = 0; i < pass_this.state.users.length; i++) {
+            /*for (var i = 0; i < pass_this.state.users.length; i++) {
                 if (i != pass_this.state.user_id) {
                     users[i] = data.users[i];
-                }
-
-                // TODO: this is probably automatic now.
-                // Debug output pomodoros retrieved from server:
-                //$("#pomodoros_" + i).text(users[i].pomodoros);
-            }
+            }*/
 
             // At the beginning retrieve pomodoros from server after
             // that we are again in possession of more recent info.
@@ -118,61 +148,65 @@ class App extends Component {
 
             // Push changes to React.
             pass_this.setState({users: users});
+			//console.log(pass_this.state.users);
         });
 
     }
 
-    add_pomodoro() {
-        var users = this.state.users.slice();
+	// pass now users since we work on a real copy of the data
+    add_pomodoro(users) {
         users[this.state.user_id].pomodoros.push(this.state.users[this.state.user_id].real_pomodoro_start);
         users[this.state.user_id].pomodoros.push(get_rel_time());
-        this.setState({users: users});
-        console.log(this.state.users);
     }
 
     tick() {
-        var users = this.state.users.slice();
-        var current_user = users[this.state.user_id];
+		if (!this.state.users) {
+			//console.log('not logged in yet');
+			return;
+		}
+		
+		var users = JSON.parse(JSON.stringify(this.state.users));
+		var current_user = users[this.state.user_id];
 
-        // We go from pomodoro to break and vice versa, if the pomodoro respective break time is over
-        if (current_user.pomodoro_state == PomodoroState.POMODORO || current_user.pomodoro_state == PomodoroState.BREAK) {
-            // first check if we have to go to a new state
-            if (current_user.pomodoro_state == PomodoroState.POMODORO && get_rel_time() > current_user.pomodoro_start + pomodoro_time) {
-                current_user.pomodoro_state = PomodoroState.BREAK;
-                this.add_pomodoro();
-            } else if (current_user.pomodoro_state == PomodoroState.BREAK && get_rel_time() > current_user.pomodoro_start + pomodoro_time + break_time) {
-                current_user.pomodoro_state = PomodoroState.POMODORO;
-                users[this.state.user_id].real_pomodoro_start = current_user.pomodoro_start = current_user.pomodoro_start + pomodoro_time + break_time;
-            }
-        }
-
-        users[this.state.user_id] = current_user;
-        this.setState({users: users});
+		// We go from pomodoro to break and vice versa, if the pomodoro respective break time is over
+		if (current_user.pomodoro_state == PomodoroState.POMODORO || current_user.pomodoro_state == PomodoroState.BREAK) {
+			// first check if we have to go to a new state
+			if (current_user.pomodoro_state == PomodoroState.POMODORO && get_rel_time() > current_user.pomodoro_start + pomodoro_time) {
+				current_user.pomodoro_state = PomodoroState.BREAK;
+				this.add_pomodoro(users);
+			} else if (current_user.pomodoro_state == PomodoroState.BREAK && get_rel_time() > current_user.pomodoro_start + pomodoro_time + break_time) {
+				current_user.pomodoro_state = PomodoroState.POMODORO;
+				users[this.state.user_id].real_pomodoro_start = current_user.pomodoro_start = current_user.pomodoro_start + pomodoro_time + break_time;
+			}
+		}
+		
+		users[this.state.user_id] = current_user;
+		this.setState({users: users});
 
         // send currents user status and retrieve friends statuses
         this.user_status();
     }
 
     handleControlClick() {
-        var users = this.state.users.slice();
+        var users = JSON.parse(JSON.stringify(this.state.users));
 
         if (users[this.state.user_id].pomodoro_state == PomodoroState.STOPPED) {
             users[this.state.user_id].pomodoro_state = PomodoroState.POMODORO;
             users[this.state.user_id].real_pomodoro_start = users[this.state.user_id].pomodoro_start = get_rel_time();
         } else /* if (pomodoro_state == PomodoroState.POMODORO || pomodoro_state == PomodoroState.BREAK) */ {
             users[this.state.user_id].pomodoro_state = PomodoroState.STOPPED;
-            this.add_pomodoro();
+            this.add_pomodoro(users);
         }
 
         this.setState({users: users});
     }
 
     handleSyncClick(partner_id) {
-        var users = this.state.users.slice();
+        var users = JSON.parse(JSON.stringify(this.state.users));
 
         // If we are right now in a pomodoro, save it as a seperate unit.
         if (users[this.state.user_id].pomodoro_state == PomodoroState.POMODORO) {
-            this.add_pomodoro();
+            this.add_pomodoro(users);
         }
 
         // Here is why we introduced real_pomodoro_start, because in this
@@ -186,14 +220,16 @@ class App extends Component {
 
 
     render() {
-		console.log(this.state.facebook_user);
         const userLogged = this.state.facebook_user != null;
         let userIcon = "";
         let userName = "Not logged in.";
+		
+		let displayLoggedInComponents = "none";
 
         if (userLogged) {
             userIcon = this.state.facebook_user.picture.data.url;
 			userName = this.state.facebook_user.name;
+			displayLoggedInComponents = "block";
 			
         } else {
             // show stuff and the user icon
@@ -213,25 +249,25 @@ class App extends Component {
                        setLoggedUser={this.setFBuser} />
                     <div id="debug"></div>
                 </Col>
-
-                <Col xs={10} sm={4} md={2} lg={2} xsOffset={1} smOffset={4} mdOffset={5} lgOffset={5}>
-                    <PomodoroPersonal
+				
+				<Col xs={10} sm={4} md={2} lg={2} xsOffset={1} smOffset={4} mdOffset={5} lgOffset={5}>
+					<PomodoroPersonal
 						user_id={this.state.user_id}
-                        users={this.state.users}
+						users={this.state.users}
 						onControlClick={() => this.handleControlClick()} />
 
-                </Col>
+				</Col>
 
-                <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
-                    <PomodoroLive
-                        user_id={this.state.user_id}
-                        users={this.state.users}
-                        onSyncClick={(partner_id) => this.handleSyncClick(partner_id)}/>
-                </Col>
+				<Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
+					<PomodoroLive
+						user_id={this.state.user_id}
+						users={this.state.users}
+						onSyncClick={(partner_id) => this.handleSyncClick(partner_id)}/>
+				</Col>
 
-               <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
-                    <PomodoroOverview />
-                </Col>
+			   <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
+					<PomodoroOverview />
+				</Col>
             </div>
         );
     }
