@@ -2,8 +2,10 @@
  * Created by tvaisanen on 11/17/17.
  */
 import React, {Component} from 'react';
+
 import { Line, Circle } from 'rc-progress';
 import { PomodoroState, get_rel_time, pomodoro_time, break_time } from '../Util';
+import '../css/pomodoro_live.css';
 
 function pomodoro_state_to_string(pomodoro_state) {
     var string;
@@ -60,6 +62,7 @@ class PomodoroLive extends Component {
 
             return (
                 <div>
+
                     <div>User {i}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
 					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor={stroke_color} />
                     <button onClick={() => this.props.onSyncClick(i)}
@@ -84,7 +87,7 @@ class PomodoroLive extends Component {
         current_user.pomodoro_state == PomodoroState.BREAK ? 'Stop' : 'Start';
 
         return (
-            <div style={ {maxWidth: '300px'} }>
+            <div className="pomodoro_live">
                 Current user: {this.props.user_id}
                 {rows}
                 <button onClick={this.props.onControlClick}
