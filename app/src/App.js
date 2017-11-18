@@ -156,7 +156,7 @@ class App extends Component {
 
     render() {
         return (
-			<div className="App">
+			<div className="social_pomodoro">
 				<PomodoroNavbar />
 				<PomodoroLive
 					user_id={this.state.user_id}
