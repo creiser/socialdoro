@@ -1,10 +1,5 @@
 import React, {Component} from 'react';
-import ReactDOM from 'react-dom';
 import FacebookLogin from 'react-facebook-login';
-
-
-// It's a global so need to read it from window
-
 
 /*
  facebook_user:Object
@@ -24,84 +19,56 @@ import FacebookLogin from 'react-facebook-login';
  __proto__:Object
  */
 
-const FB = window.FB;
-
-const responseFacebook = (response) => {
-    console.log(response);
-    console.log(response.id);
-
-    /* make the API call */
-    console.info("window.FB");
-    console.info(window.FB);
-    window.FB.api(
-        "/{friend-list-id}",
-        function (response) {
-            if (response && !response.error) {
-                // handle the result
-            }
-        }
-    );
-};
-
 const componentClicked = () => {
-    console.info("Clicked");
+    // console.info("Clicked");
 }
 
 export const getUserFriendlists = (userId, setFriends) => {
+
     console.info('getUserFriendlist()');
     const query = "/me/friends";
-    window.FB.getLoginStatus(function(response) {
+    window.FB.getLoginStatus(function (response) {
         console.log(response);
-      if (response.status === 'connected') {
-        const accessToken = response.authResponse.accessToken;
-      }
-    } );
+        if (response.status === 'connected') {
+            const accessToken = response.authResponse.accessToken;
+        }
+    });
 
 
-        window.FB.api(query, {fields: 'id,name,picture'}, (response) => {
+    window.FB.api(query, {fields: 'id,name,picture'}, (response) => {
 
-            console.info("inside FB.api call");
+        console.info("inside FB.api call");
 
-            if (response && !response.error) {
-                console.info(response);
-                document.getElementById('debug').innerHTML = JSON.stringify(response);
-                setFriends(response);
-                return response;
+        if (response && !response.error) {
+            console.info(response);
+            // document.getElementById('debug').innerHTML = JSON.stringify(response);
+            setFriends(response);
+            return response;
 
-            }
-        });
+        }
+    });
 
 };
 
 
-    export default class FBLoginComponent extends Component {
-        constructor(props) {
-            super(props);
-            this.setLoggedUser = props.setLoggedUser;
-            this.setUserFriends = props.setUserFriends;
-            this.setUserFriends = props.setUserFriends.bind(this);
-        }
-
-        componentDidMount() {
-            this.setLoggedUser();
-            this.setUserFriends();
-        }
-
-        setup(){
-            console.log()
-        }
-
-        render() {
-            return (
-                <div>
-                    <FacebookLogin
-                        appId="157311708336316"
-                        autoLoad={true}
-                        fields="name,email,picture"
-                        scope="email,user_friends"
-                        onClick={componentClicked}
-                        callback={this.setLoggedUser}/>
-                </div>)
-        }
-
+export default class FBLoginComponent extends Component {
+    constructor(props) {
+        super(props);
+        this.setLoggedUser = props.setLoggedUser;
     }
+
+
+    render() {
+        return (
+            <div>
+                <FacebookLogin
+                    appId="157311708336316"
+                    autoLoad={true}
+                    fields="name,email,picture"
+                    scope="email,user_friends"
+                    onClick={componentClicked}
+                    callback={this.setLoggedUser}/>
+            </div>)
+    }
+
+}

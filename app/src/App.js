@@ -44,13 +44,16 @@ class App extends Component {
     }
 
     setFBuser(user){
-        this.setState({facebook_user: user});
-        console.info(this.state);
         console.info(user);
-        getUserFriendlists(this.state.user.id, (response) =>  {
+        this.setState({facebook_user: user});
+        const id = this.state.facebook_user.id || false;
+        if (id){
+            getUserFriendlists(this.state.facebook_user.id, (response) =>  {
                 this.setState({facebook_friends: response.data});
                 console.log(this.state);
             });
+        }
+
 
 
     }
@@ -190,7 +193,7 @@ class App extends Component {
 
     render() {
         const userLogged = this.state.facebook_user != null;
-        let userIcon = ""
+        let userIcon = "";
         let userName = "Username";
         let userId = 0;
 
