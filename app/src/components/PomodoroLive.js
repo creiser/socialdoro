@@ -3,6 +3,8 @@
  */
 import $ from 'jquery';
 import React, {Component} from 'react';
+import { Line, Circle } from 'rc-progress';
+
 // For testing purposes, 100 seconds = 1 day
 var PomodoroState = {
     OFFLINE: 0,
@@ -96,17 +98,27 @@ class PomodoroLive extends Component {
                 (user.pomodoro_state == PomodoroState.POMODORO ||
                 user.pomodoro_state == PomodoroState.BREAK) &&
                 i != this.state.user_id ? 'inline' : 'none';
+				
+			
+			// TODO: We could pack this into a function.
+			var total_pomodoro_time = 0;
+			for (var j = 0; j < user.pomodoros.length; j += 2) {
+				total_pomodoro_time += user.pomodoros[j + 1] - user.pomodoros[j];
+			}
+			
+			// Add time of not yet finished pomodoro
+			if (user.pomodoro_state == PomodoroState.POMODORO) {
+				total_pomodoro_time += get_rel_time() - this.real_pomodoro_start;
+			}
 
             return (
                 <div>
                     <div>User {i}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
-                    <div style={ {width: '300px', height: '20px', float: 'left', border: '1px solid black'} }>
-                        <div style={ {width: width + '%', height: '21px', backgroundColor: 'green'} }></div>
-                    </div>
+					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor="green" />
                     <button onClick={() => this.onSyncClicked(this, i)}
                             style={ {marginLeft: '10px', float: 'left', display: sync_button_display} }>Sync
                     </button>
-                    <div style={ {clear: 'both'} }>{user.pomodoros}</div>
+                    <div style={ {clear: 'both'} }>Total time: {Math.round(total_pomodoro_time)}</div>
                 </div>
             );
         });
@@ -125,7 +137,7 @@ class PomodoroLive extends Component {
         current_user.pomodoro_state == PomodoroState.BREAK ? 'Stop' : 'Start';
 
         return (
-            <div>
+            <div style={ {maxWidth: '300px'} }>
                 Current user: {this.state.user_id}
                 {rows}
                 <button onClick={() => this.onControlClicked(this)}
