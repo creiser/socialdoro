@@ -1,11 +1,13 @@
 import React, {Component} from 'react';
 import './App.css';
-import {checkLoginState, fbLogin, initFB, testAPI} from './components/FBActions';
+
 
 import PomodoroLive from './components/PomodoroLive';
+import PomodoroPersonal from './components/PomodoroPersonal';
 import PomodoroOverview from './components/PomodoroOverview';
 import PomodoroNavbar from './components/PomodoroNavbar';
 import $ from 'jquery';
+
 import {PomodoroState, get_rel_time, pomodoro_time, break_time, getUrlParameter} from './Util';
 import {Button, Col, Row} from 'react-bootstrap';
 
@@ -160,6 +162,11 @@ class App extends Component {
         return (
             <div className="app">
                 <PomodoroNavbar />
+
+
+                <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
+                    <PomodoroPersonal />
+                </Col>
 
                 <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
                     <PomodoroLive
