@@ -82,14 +82,6 @@ def user_status():
 
     return jsonify(users=users)
 
-@app.route('/')
-def index():
-    user_id = request.args.get('user_id', 0, type=int)
-    return render_template('index.html',
-                           user_id=user_id,
-                           num_users=num_users,
-                           debug_start=debug_start)
-
 @app.route('/app')
 def app_route():
     print(app.static_url_path)
