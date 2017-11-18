@@ -1,12 +1,13 @@
 import React, {Component} from 'react';
 import './App.css';
+import {checkLoginState, fbLogin, initFB, testAPI} from './components/FBActions';
 
 import PomodoroLive from './components/PomodoroLive';
 import PomodoroOverview from './components/PomodoroOverview';
 import PomodoroNavbar from './components/PomodoroNavbar';
 import $ from 'jquery';
 import {PomodoroState, get_rel_time, pomodoro_time, break_time, getUrlParameter} from './Util';
-import {Col, Row} from 'react-bootstrap';
+import {Button, Col, Row} from 'react-bootstrap';
 
 class App extends Component {
     constructor(props) {
@@ -35,6 +36,8 @@ class App extends Component {
     }
 
     componentDidMount() {
+        initFB();
+        testAPI();
         this.timerID = setInterval(
             () => this.tick(),
             100
@@ -160,6 +163,8 @@ class App extends Component {
             <div className="app">
                 <PomodoroNavbar />
 
+                <Button onClick={checkLoginState}>Fb test </Button>
+
                 <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
                     <PomodoroLive
                         user_id={this.state.user_id}
@@ -177,5 +182,4 @@ class App extends Component {
 }
 
 export default App;
-
 

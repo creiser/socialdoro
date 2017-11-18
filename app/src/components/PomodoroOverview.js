@@ -8,6 +8,7 @@ class PomodoroOverview extends Component {
     render(){
         return (
             <div>
+                <a name="overview"/>
                 <h1>OVERVIEW</h1>
             </div>
         )

@@ -20,11 +20,12 @@ class PomodoroNavbar extends Component {
             </Navbar.Header>
             <Navbar.Collapse>
                 <Nav>
-                    <NavItem eventKey={1} href="#">Live</NavItem>
-                    <NavItem eventKey={2} href="#">Overview</NavItem>
+                    <NavItem eventKey={1} href="#live">Live</NavItem>
+                    <NavItem eventKey={2} href="#overview">Overview</NavItem>
                 </Nav>
 
             </Navbar.Collapse>
+
         </Navbar>;
     }
 }
