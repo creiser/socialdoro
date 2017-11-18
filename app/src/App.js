@@ -44,23 +44,17 @@ class App extends Component {
     }
 
     setFBuser(user){
-        console.info(user);
         this.setState({facebook_user: user});
         const id = this.state.facebook_user.id || false;
         if (id){
             getUserFriendlists(this.state.facebook_user.id, (response) =>  {
                 this.setState({facebook_friends: response.data});
-                console.log(this.state);
             });
         }
-
-
-
     }
 
     setFBFriends(users){
         this.setState({facebook_friends: users});
-        console.info(this.state);
     }
 
     logoutFBuser(){
@@ -192,19 +186,19 @@ class App extends Component {
 
 
     render() {
+		console.log(this.state.facebook_user);
         const userLogged = this.state.facebook_user != null;
         let userIcon = "";
-        let userName = "Username";
-        let userId = 0;
+        let userName = "Not logged in.";
 
         if (userLogged) {
             userIcon = this.state.facebook_user.picture.data.url;
-            userId = this.state.facebook_user.id;
-            // console.info("UserIcon");
-            // console.info(userIcon);
+			userName = this.state.facebook_user.name;
+			
         } else {
             // show stuff and the user icon
         }
+		
         return (
             <div className="app">
 
@@ -216,9 +210,7 @@ class App extends Component {
 
                 <Col xs={4} sm={4} md={2} lg={2} xsOffset={4} smOffset={4} mdOffset={5} lgOffset={5}>
                    <FBLogingComponent
-                       setLoggedUser={this.setFBuser}
-                       setUserFriends={this.setFBFriends}
-                   />
+                       setLoggedUser={this.setFBuser} />
                     <div id="debug"></div>
                 </Col>
 
