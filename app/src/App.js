@@ -36,8 +36,6 @@ class App extends Component {
     }
 
     componentDidMount() {
-        initFB();
-        testAPI();
         this.timerID = setInterval(
             () => this.tick(),
             100
@@ -162,8 +160,6 @@ class App extends Component {
         return (
             <div className="app">
                 <PomodoroNavbar />
-
-                <Button onClick={checkLoginState}>Fb test </Button>
 
                 <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
                     <PomodoroLive
