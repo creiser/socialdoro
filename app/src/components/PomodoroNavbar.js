@@ -3,7 +3,7 @@
  */
 
 import React, {Component} from 'react';
-import {Row, Tab, Tabs, Nav, NavItem, MenuItem, NavDropdown, Navbar} from 'react-bootstrap';
+import {Nav, NavItem, Navbar} from 'react-bootstrap';
 
 class PomodoroNavbar extends Component {
     constructor(props) {
