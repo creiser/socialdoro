@@ -28,9 +28,11 @@ class PomodoroLive extends Component {
     render() {
         const rows = this.props.users.map((user, i) => {
             var width = 0;
+			var stroke_color = 'green';
 
             if (user.pomodoro_state == PomodoroState.POMODORO) {
                 width = (get_rel_time() - user.pomodoro_start) * 100 / pomodoro_time;
+				stroke_color = 'red';
             } else if (user.pomodoro_state == PomodoroState.BREAK) {
                 width = (get_rel_time() - (user.pomodoro_start + pomodoro_time)) * 100 / break_time;
             }
@@ -59,7 +61,7 @@ class PomodoroLive extends Component {
             return (
                 <div>
                     <div>User {i}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
-					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor="green" />
+					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor={stroke_color} />
                     <button onClick={() => this.props.onSyncClick(i)}
                             style={ {marginLeft: '10px', float: 'left', display: sync_button_display} }>Sync
                     </button>
