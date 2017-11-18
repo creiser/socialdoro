@@ -46,8 +46,8 @@ class App extends Component {
     setFBuser(user){
         this.setState({facebook_user: user});
         console.info(this.state);
-        getUserFriendlists(user.id, (response) => 
-                {
+        console.info(user);
+        getUserFriendlists(this.state.user.id, (response) =>  {
                 this.setState({facebook_friends: response.data});
                 console.log(this.state);
             });
@@ -204,6 +204,7 @@ class App extends Component {
         }
         return (
             <div className="app">
+
                 <PomodoroNavbar
                     userIcon={userIcon}
                     userName={userName}
@@ -218,15 +219,18 @@ class App extends Component {
                     <div id="debug"></div>
                 </Col>
 
-                <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
-                    <PomodoroPersonal />
+                <Col xs={10} sm={4} md={2} lg={2} xsOffset={1} smOffset={4} mdOffset={5} lgOffset={5}>
+                    <PomodoroPersonal
+						user_id={this.state.user_id}
+                        users={this.state.users}
+						onControlClick={() => this.handleControlClick()} />
+
                 </Col>
 
                 <Col xs={10} sm={8} md={6} lg={6} xsOffset={1} smOffset={2} mdOffset={3} lgOffset={3}>
                     <PomodoroLive
                         user_id={this.state.user_id}
                         users={this.state.users}
-                        onControlClick={() => this.handleControlClick()}
                         onSyncClick={(partner_id) => this.handleSyncClick(partner_id)}/>
                 </Col>
 
