@@ -4,7 +4,7 @@
 import React, {Component} from 'react';
 
 import { Line, Circle } from 'rc-progress';
-import { PomodoroState, get_rel_time, pomodoro_time, break_time } from '../Util';
+import { PomodoroState, get_rel_time, pomodoro_time, break_time, getUserProgressInPercent } from '../Util';
 import '../css/pomodoro_live.css';
 
 function pomodoro_state_to_string(pomodoro_state) {
@@ -29,18 +29,8 @@ function pomodoro_state_to_string(pomodoro_state) {
 class PomodoroLive extends Component {
     render() {
         const rows = this.props.users.map((user, i) => {
-            var width = 0;
-			var stroke_color = 'green';
-
-            if (user.pomodoro_state == PomodoroState.POMODORO) {
-                width = (get_rel_time() - user.pomodoro_start) * 100 / pomodoro_time;
-				stroke_color = 'red';
-            } else if (user.pomodoro_state == PomodoroState.BREAK) {
-                width = (get_rel_time() - (user.pomodoro_start + pomodoro_time)) * 100 / break_time;
-            }
-            // Instead of performing predictive state changes for all users, we just define that maximum here!!
-            // This is simple and more robust!
-            width = Math.min(100, width);
+			var stroke_color = user.pomodoro_state == PomodoroState.POMODORO ? 'red' : 'green';
+            var width = getUserProgressInPercent(user);
 
             // Display the sync button for all OTHER users that are either in pomodoro or in break.
             var sync_button_display =
@@ -62,7 +52,6 @@ class PomodoroLive extends Component {
 
             return (
                 <div>
-
                     <div>User {i}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
 					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor={stroke_color} />
                     <button onClick={() => this.props.onSyncClick(i)}
@@ -73,26 +62,9 @@ class PomodoroLive extends Component {
             );
         });
 
-        // Current user specific
-        var info_text = 'Press start to start pomodoro';
-
-        var current_user = this.props.users[this.props.user_id];
-        if (current_user.pomodoro_state == PomodoroState.POMODORO) {
-            info_text = "Work! Next break in " + Math.round(current_user.pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.";
-        } else if (current_user.pomodoro_state == PomodoroState.BREAK) {
-            info_text = "Take a break! Next pomodoro in " + Math.round(current_user.pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.";
-        }
-
-        var control_button_text = current_user.pomodoro_state == PomodoroState.POMODORO ||
-        current_user.pomodoro_state == PomodoroState.BREAK ? 'Stop' : 'Start';
-
         return (
             <div className="pomodoro_live">
-                Current user: {this.props.user_id}
                 {rows}
-                <button onClick={this.props.onControlClick}
-                        style={ {margin: '10px'} }>{control_button_text}</button>
-                <div>{info_text}</div>
             </div>
         );
     }

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "devDependencies": {
-    "react-scripts": "0.9.5",
+    "react-scripts": "*",
     "react-sidenav": "^2.0.6",
     "styled-components": "^1.4.4"
   },

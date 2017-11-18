@@ -15,6 +15,20 @@ export function get_rel_time() {
 export const pomodoro_time = 10; // in seconds
 export const break_time = 4; // in seconds
 
+
+export function getUserProgressInPercent(user) {
+	var width = 0;		
+	if (user.pomodoro_state == PomodoroState.POMODORO) {
+		width = (get_rel_time() - user.pomodoro_start) * 100 / pomodoro_time;
+	} else if (user.pomodoro_state == PomodoroState.BREAK) {
+		width = (get_rel_time() - (user.pomodoro_start + pomodoro_time)) * 100 / break_time;
+	}
+	// Instead of performing predictive state changes for all users, we just define that maximum here!!
+	// This is simple and more robust!
+	width = Math.min(100, width);
+	return width;
+}
+
 // This is just for my beloved debugging method
 export var getUrlParameter = function getUrlParameter(sParam) {
     var sPageURL = decodeURIComponent(window.location.search.substring(1)),
