@@ -52,10 +52,9 @@ class PomodoroLive extends Component {
 			}
 			
 			// Add time of not yet finished pomodoro
-			// TODO: we need the real_pomodoro_start of everybody!
-			/*if (user.pomodoro_state == PomodoroState.POMODORO) {
-				total_pomodoro_time += get_rel_time() - this.props.real_pomodoro_start;
-			}*/
+			if (user.pomodoro_state == PomodoroState.POMODORO) {
+				total_pomodoro_time += get_rel_time() - user.real_pomodoro_start;
+			}
 
             return (
                 <div>

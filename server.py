@@ -59,6 +59,8 @@ def user_status():
             debug['pomodoro_start'] = "value: {}, type: {}".format(pomodoro_start, type(pomodoro_start))
         except Exception as e:
             debug['pomodoro_start'] = str(e),
+            
+        users[user_id]['real_pomodoro_start'] = request.args.get('real_pomodoro_start', 0, type=float)
 
 
 
@@ -80,28 +82,13 @@ def user_status():
 
     return jsonify(users=users)
 
-@app.route('/_add_pomodoro')
-@cross_origin()
-def add_pomodoro():
-    user_id = request.args.get('user_id', type=int)
-    pomodoro_start = request.args.get('start', type=float)
-    pomodoro_end = request.args.get('end', type=float)
-    users[user_id]['pomodoros'].append(pomodoro_start)
-    users[user_id]['pomodoros'].append(pomodoro_end)
-    #pomodoros[user_id].append(pomodoro_start)
-    #pomodoros[user_id].append(pomodoro_end)
-    #print(pomodoros)
-    return jsonify(result="")
-
 @app.route('/')
 def index():
     user_id = request.args.get('user_id', 0, type=int)
     return render_template('index.html',
                            user_id=user_id,
                            num_users=num_users,
-                           debug_start=debug_start,
-                           #pomodoros=pomodoros
-                           )
+                           debug_start=debug_start)
 
 @app.route('/app')
 def app_route():
