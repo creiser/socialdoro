@@ -44,6 +44,20 @@ class PomodoroLive extends Component {
         const rows = user_array.map((user, i) => {
 			var stroke_color = user.pomodoro_state == PomodoroState.POMODORO ? 'red' : 'green';
             var width = getUserProgressInPercent(user);
+			
+			
+			// !!! The following code is not a state change, but merely predicts the real state of other users !!!
+			// We go from pomodoro to break and vice versa, if the pomodoro respective break time is over
+			if (user.pomodoro_state == PomodoroState.POMODORO || user.pomodoro_state == PomodoroState.BREAK) {
+				// first check if we have to go to a new state
+				if (user.pomodoro_state == PomodoroState.POMODORO && get_rel_time() > user.pomodoro_start + pomodoro_time) {
+					user.pomodoro_state = PomodoroState.BREAK;
+				} else if (user.pomodoro_state == PomodoroState.BREAK && get_rel_time() > user.pomodoro_start + pomodoro_time + break_time) {
+					user.pomodoro_state = PomodoroState.POMODORO;
+					user.real_pomodoro_start = user.pomodoro_start = user.pomodoro_start + pomodoro_time + break_time;
+				}
+			}
+			// !!! The changes are not commited !!!
 
             // Display the sync button for all OTHER users that are either in pomodoro or in break.
             var sync_button_display =
