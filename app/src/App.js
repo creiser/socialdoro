@@ -76,10 +76,17 @@ class App extends Component {
     }
 
     componentDidMount() {
+		// Render at 33 fps (1000 / 30 = 33)
         this.timerID = setInterval(
             () => this.tick(),
-            100
+            33
         );
+		
+		// Server contact only every second
+		this.userStatusId = setInterval(
+			() => this.user_status(),
+			1000
+		);
     }
 
     componentWillUnmount() {
@@ -97,6 +104,10 @@ class App extends Component {
 	}
 
     user_status() {
+		if (!this.state.users) {
+			return;
+		}
+		
         var current_user = this.state.users[this.state.user_id];
 
         // Convert list to string of comma seperated values for GET request
@@ -129,7 +140,11 @@ class App extends Component {
 				// check if the property/key is defined in the object itself, not in parent
 				if (users.hasOwnProperty(fb_id) && fb_id != pass_this.state.user_id) {
 					users[fb_id] = data.users[fb_id];
-					//console.log(fb_id, users[fb_id]);
+					//users[fb_id].pomodoro_state = data.users[fb_id].pomodoro_state;
+					//users[fb_id].pomodoro_start = data.users[fb_id].pomodoro_start;
+					//users[fb_id].real_pomodoro_start = data.users[fb_id].real_pomodoro_start;
+					//users[fb_id].pomodoros = data.users[fb_id].pomodoros;
+					//console.log('yolo');
 				}
 			}
             // Copy everything except state of logged in user, because we have
@@ -161,7 +176,6 @@ class App extends Component {
 
     tick() {
 		if (!this.state.users) {
-			//console.log('not logged in yet');
 			return;
 		}
 		
@@ -182,9 +196,6 @@ class App extends Component {
 		
 		users[this.state.user_id] = current_user;
 		this.setState({users: users});
-
-        // send currents user status and retrieve friends statuses
-        this.user_status();
     }
 
     handleControlClick() {
