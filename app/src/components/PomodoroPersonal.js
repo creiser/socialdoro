@@ -17,28 +17,30 @@ class PomodoroPersonal extends Component {
 		var width = getUserProgressInPercent(this.props.users[this.props.user_id]);
 		
 		// Current user specific
-        //var info_text = 'Press start to start pomodoro';
+       //var info_text = 'Press start to start pomodoro';
 		var info_text = '';
-		var remaining_time = 'Paused';
+		var remaining_time = '';
+		var color = 'green';
 
         var current_user = this.props.users[this.props.user_id];
         if (current_user.pomodoro_state == PomodoroState.POMODORO) {
             //info_text = "Work! Next break in " + Math.round(current_user.pomodoro_start + pomodoro_time - get_rel_time()) + " seconds.";
+			info_text = 'Work';
 			remaining_time = prettyTime(current_user.pomodoro_start + pomodoro_time - get_rel_time());
+			color = 'red';
         } else if (current_user.pomodoro_state == PomodoroState.BREAK) {
             //info_text = "Take a break! Next pomodoro in " + Math.round(current_user.pomodoro_start + pomodoro_time + break_time - get_rel_time()) + " seconds.";
 			remaining_time = prettyTime(current_user.pomodoro_start + pomodoro_time + break_time - get_rel_time());
+			info_text = 'Break';
         }
 
         var control_button_text = current_user.pomodoro_state == PomodoroState.POMODORO ||
         current_user.pomodoro_state == PomodoroState.BREAK ? 'Stop' : 'Start';
 		
-		// The biggest hack of all time, just hack in, don't care, I love it
-		//$('#personalCountdown').remove();
-		//$('.rc-progress-circle ').append('<text id="personalCountdown" x="50%" y="50%" fill="black" text-anchor="middle" alignment-baseline="central" font-size="10">' + remaining_time + '</text>');
 		
 		// candidate for hacking hall of fame
-		$('#rem_t').html('<svg viewBox="0 0 100 100"><text x="50%" y="50%" fill="black" text-anchor="middle" alignment-baseline="central" font-size="13">' + remaining_time + '</text></svg>');
+		$('#rem_t').html('<svg viewBox="0 0 100 100"><text x="50%" y="40%" fill="' + color + '" text-anchor="middle" alignment-baseline="central" font-size="13">' + info_text + '</text>' + 
+		'<text x="50%" y="60%" fill="' + color + '" text-anchor="middle" alignment-baseline="central" font-size="13">' + remaining_time + '</text></svg>');
 		var offset = $('.rc-progress-circle').outerHeight();
 		
         return (
@@ -47,7 +49,6 @@ class PomodoroPersonal extends Component {
 				<div id="rem_t" style={{marginBottom: -offset, position: 'relative', bottom: offset}}>
 				</div>
 				<Button onClick={this.props.onControlClick} bsStyle="primary">{control_button_text}</Button>
-                <div>{info_text}</div>
             </div>
         );
     }
