@@ -6,21 +6,22 @@ import React, {Component} from 'react';
 import { Line, Circle } from 'rc-progress';
 import { PomodoroState, get_rel_time, pomodoro_time, break_time, getUserProgressInPercent, prettyTime} from '../Util';
 import '../css/pomodoro_live.css';
+import { Button } from 'react-bootstrap';
 
 function pomodoro_state_to_string(pomodoro_state) {
     var string;
     switch (pomodoro_state) {
         case PomodoroState.OFFLINE:
-            string = "offline";
+            string = "Offline";
             break;
         case PomodoroState.STOPPED:
-            string = "stopped";
+            string = "Online";
             break;
         case PomodoroState.POMODORO:
-            string = "pomodoro";
+            string = "Pomodoro";
             break;
         case PomodoroState.BREAK:
-            string = "break";
+            string = "Break";
             break;
     }
     return string;
@@ -75,20 +76,33 @@ class PomodoroLive extends Component {
 			if (user.pomodoro_state == PomodoroState.POMODORO) {
 				total_pomodoro_time += get_rel_time() - user.real_pomodoro_start;
 			}
+			
+			// Important: REMOVE AGAIN!
+			sync_button_display = 'inline';
+			var first_name = user.name.split(' ')[0];
 
             return (
                 <div>
-                    <div>{user.name}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
+					<div style={{marginBottom: '5px', float: 'left'}}>
+						<img width="40" height="40" src={user.picture} style={{verticalAlign: 'middle', borderRadius: "25px", marginRight: '10px'}}/>
+						<span style={{verticalAlign: 'middle', fontSize: '20px'}}>{user.name}: {pomodoro_state_to_string(user.pomodoro_state)}</span>
+					</div>
 					
-					<img width="40" height="40"
-                     style={{float: "right", borderRadius: "25px", marginTop: "5px"}}
-                     src={user.picture} />
+					<div style={{height: '40px', lineHeight: '40px', marginBottom: '5px', float: 'right'}}>
+						<span style={{verticalAlign: 'middle', fontSize: '20px'}}>Today's total time: {prettyTime(total_pomodoro_time)}</span>
+					</div>
 					
+					<div style={ {clear: 'both'} }></div>
+			
 					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor={stroke_color} />
                     <button onClick={() => this.props.onSyncClick(user.user_id)}
-                            style={ {marginLeft: '10px', float: 'left', display: sync_button_display} }>Sync
+                            style={ {marginLeft: '10px', float: 'left', display: 'none'} }>Sync
                     </button>
-                    <div style={ {clear: 'both'} }>Total time: {prettyTime(total_pomodoro_time)}</div>
+					
+					<Button style={ {float: 'right', display: sync_button_display} }
+						oonClick={() => this.props.onSyncClick(user.user_id)} bsStyle="primary">Sync with {first_name}</Button>
+					
+                    <div style={ {clear: 'both', marginBottom: "20px"} }></div>
                 </div>
             );
         });
