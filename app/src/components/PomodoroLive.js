@@ -93,12 +93,9 @@ class PomodoroLive extends Component {
 					<div style={ {clear: 'both'} }></div>
 			
 					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor={stroke_color} />
-                    <button onClick={() => this.props.onSyncClick(user.user_id)}
-                            style={ {marginLeft: '10px', float: 'left', display: 'none'} }>Sync
-                    </button>
-					
+
 					<Button style={ {float: 'right', display: sync_button_display} }
-						oonClick={() => this.props.onSyncClick(user.user_id)} bsStyle="primary">Sync with {first_name}</Button>
+						onClick={() => this.props.onSyncClick(user.user_id)} bsStyle="primary">Sync with {first_name}</Button>
 					
                     <div style={ {clear: 'both', marginBottom: "20px"} }></div>
                 </div>

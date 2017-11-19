@@ -272,7 +272,7 @@ class App extends Component {
                     <div id="debug"></div>
                 </Col>
 				
-				<Col xs={10} sm={4} md={2} lg={2} xsOffset={1} smOffset={4} mdOffset={5} lgOffset={5}>
+				<Col xs={4} sm={4} md={2} lg={2} xsOffset={4} smOffset={4} mdOffset={5} lgOffset={5}>
 					<PomodoroPersonal
 						user_id={this.state.user_id}
 						users={this.state.users}
