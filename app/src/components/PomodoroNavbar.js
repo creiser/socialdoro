@@ -25,7 +25,7 @@ class PomodoroNavbar extends Component {
                     <NavItem eventKey={1} href="#live">Live</NavItem>
                     <NavItem eventKey={2} href="#overview">Overview</NavItem>
                 </Nav>
-                <img width="40" height="40" mar
+                <img width="40" height="40"
                      style={{float: "right", borderRadius: "25px", marginTop: "5px"}}
                      src={this.props.userIcon}
                      onClick={this.props.onImageClick}/>

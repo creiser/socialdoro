@@ -44,3 +44,9 @@ export var getUrlParameter = function getUrlParameter(sParam) {
         }
     }
 };
+
+// really bad programmed :D
+export function prettyTime(seconds) {
+	var seconds = Math.round(seconds);
+	return Math.floor(seconds / 60) + ':' + (seconds % 60 < 10 ? '0' : '') + seconds % 60;
+}

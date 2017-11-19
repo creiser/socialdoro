@@ -9,7 +9,7 @@ class PomodoroOverview extends Component {
         return (
             <div>
                 <a name="overview"/>
-                <h1>OVERVIEW</h1>
+                <h1></h1>
             </div>
         )
     }

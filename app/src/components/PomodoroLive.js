@@ -4,7 +4,7 @@
 import React, {Component} from 'react';
 
 import { Line, Circle } from 'rc-progress';
-import { PomodoroState, get_rel_time, pomodoro_time, break_time, getUserProgressInPercent } from '../Util';
+import { PomodoroState, get_rel_time, pomodoro_time, break_time, getUserProgressInPercent, prettyTime} from '../Util';
 import '../css/pomodoro_live.css';
 
 function pomodoro_state_to_string(pomodoro_state) {
@@ -64,12 +64,17 @@ class PomodoroLive extends Component {
 
             return (
                 <div>
-                    <div>User {user.user_id}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
+                    <div>{user.name}: {pomodoro_state_to_string(user.pomodoro_state)}</div>
+					
+					<img width="40" height="40"
+                     style={{float: "right", borderRadius: "25px", marginTop: "5px"}}
+                     src={user.picture} />
+					
 					<Line percent={width} strokeWidth="4" trailWidth="4" strokeColor={stroke_color} />
                     <button onClick={() => this.props.onSyncClick(user.user_id)}
                             style={ {marginLeft: '10px', float: 'left', display: sync_button_display} }>Sync
                     </button>
-                    <div style={ {clear: 'both'} }>Total time: {Math.round(total_pomodoro_time)}</div>
+                    <div style={ {clear: 'both'} }>Total time: {prettyTime(total_pomodoro_time)}</div>
                 </div>
             );
         });

@@ -37,8 +37,13 @@ class App extends Component {
         if (this.state.user_id) {
             getUserFriendlists(this.state.user_id, (response) =>  {
 				var facebook_friends = response.data;
+				
+				console.log(facebook_friends);
+				console.log(this.state.facebook_user);
 
 				// Initialize friends to default values.
+				// And add facebook info (name, picture) to record so it can be easily accesed
+				// together with the user.
 				let users = {};
 				for (let i = 0; i < facebook_friends.length; i++) {
 					users[facebook_friends[i].id] = {};
@@ -46,14 +51,19 @@ class App extends Component {
 					users[facebook_friends[i].id].pomodoro_start = 0;
 					users[facebook_friends[i].id].real_pomodoro_start = 0;
 					users[facebook_friends[i].id].pomodoros = [];
+					users[facebook_friends[i].id].name = facebook_friends[i].name;
+					users[facebook_friends[i].id].picture = facebook_friends[i].picture.data.url;
 				}
 				
-				// Ugly copy & paste: (only pomodoro_state is different)
+				// Initalize the logged in user.
+				// Ugly copy & paste: (only pomodoro_state, name, picture are different)
 				users[this.state.user_id] = {};
 				users[this.state.user_id].pomodoro_state = PomodoroState.STOPPED;
 				users[this.state.user_id].pomodoro_start = 0;
 				users[this.state.user_id].real_pomodoro_start = 0;
 				users[this.state.user_id].pomodoros = [];
+				users[this.state.user_id].name = this.state.facebook_user.name;
+				users[this.state.user_id].picture = this.state.facebook_user.picture.data.url;
 				
 				console.log(users);
 				console.log("fb friends:");
@@ -139,12 +149,12 @@ class App extends Component {
 			for (var fb_id in users) {
 				// check if the property/key is defined in the object itself, not in parent
 				if (users.hasOwnProperty(fb_id) && fb_id != pass_this.state.user_id) {
-					users[fb_id] = data.users[fb_id];
-					//users[fb_id].pomodoro_state = data.users[fb_id].pomodoro_state;
-					//users[fb_id].pomodoro_start = data.users[fb_id].pomodoro_start;
-					//users[fb_id].real_pomodoro_start = data.users[fb_id].real_pomodoro_start;
-					//users[fb_id].pomodoros = data.users[fb_id].pomodoros;
-					//console.log('yolo');
+					//users[fb_id] = data.users[fb_id];
+					users[fb_id].pomodoro_state = data.users[fb_id].pomodoro_state;
+					users[fb_id].pomodoro_start = data.users[fb_id].pomodoro_start;
+					users[fb_id].real_pomodoro_start = data.users[fb_id].real_pomodoro_start;
+					users[fb_id].pomodoros = data.users[fb_id].pomodoros;
+					console.log('yolo');
 				}
 			}
             // Copy everything except state of logged in user, because we have
@@ -235,12 +245,12 @@ class App extends Component {
         let userIcon = "";
         let userName = "Not logged in.";
 		
-		let displayLoggedInComponents = "none";
+		let displayLoginButton = "block";
 
         if (userLogged) {
             userIcon = this.state.facebook_user.picture.data.url;
 			userName = this.state.facebook_user.name;
-			displayLoggedInComponents = "block";
+			displayLoginButton = "none";
 			
         } else {
             // show stuff and the user icon
@@ -255,7 +265,7 @@ class App extends Component {
                     logout={this.logoutFBuser}
                 />
 
-                <Col xs={4} sm={4} md={2} lg={2} xsOffset={4} smOffset={4} mdOffset={5} lgOffset={5}>
+                <Col xs={4} sm={4} md={2} lg={2} xsOffset={4} smOffset={4} mdOffset={5} lgOffset={5} style={{ display: displayLoginButton }}>
                    <FBLogingComponent
                        setLoggedUser={this.setFBuser} />
                     <div id="debug"></div>

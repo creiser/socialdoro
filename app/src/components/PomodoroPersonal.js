@@ -30,7 +30,6 @@ class PomodoroPersonal extends Component {
 		
         return (
             <div className="pomodoro_personal">
-				Current user: {this.props.user_id}
 				<Circle percent={width} strokeWidth="4" trailWidth="4" strokeColor={stroke_color} />
 				<Button onClick={this.props.onControlClick} bsStyle="primary">{control_button_text}</Button>
                 <div>{info_text}</div>
