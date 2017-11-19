@@ -263,6 +263,7 @@ class App extends Component {
                     userIcon={userIcon}
                     userName={userName}
                     logout={this.logoutFBuser}
+					userLogged={userLogged}
                 />
 
                 <Col xs={4} sm={4} md={2} lg={2} xsOffset={4} smOffset={4} mdOffset={5} lgOffset={5} style={{ display: displayLoginButton }}>
