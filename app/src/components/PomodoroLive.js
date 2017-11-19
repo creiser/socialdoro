@@ -77,8 +77,6 @@ class PomodoroLive extends Component {
 				total_pomodoro_time += get_rel_time() - user.real_pomodoro_start;
 			}
 			
-			// Important: REMOVE AGAIN!
-			sync_button_display = 'inline';
 			var first_name = user.name.split(' ')[0];
 
             return (
